@@ -21,13 +21,18 @@ package org.geotools.data.epavic;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import org.geotools.data.FeatureReader;
-import org.geotools.feature.FeatureIterator;
-import org.geotools.geojson.feature.FeatureJSON;
-import org.geotools.geojson.geom.GeometryJSON;
+import org.geotools.data.epavic.schema.Measurement;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Feature reader of the GeoJSON features
@@ -42,14 +47,30 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
 
   protected int featIndex = 0;
 
-  private FeatureIterator<SimpleFeature> featureIterator;
+  private JsonParser jParser;
 
   public EpaVicFeatureReader(SimpleFeatureType featureTypeIn, InputStream iStream) throws IOException {
     this.featureType = featureTypeIn;
     this.featIndex = 0;
 
-    FeatureJSON parser = new FeatureJSON(new GeometryJSON(14));
-    featureIterator = parser.streamFeatureCollection(iStream);
+    JsonFactory jfactory = new JsonFactory();
+    jParser = jfactory.createParser(iStream);
+    jParser.setCodec(new ObjectMapper());
+    JsonToken nextToken = jParser.nextToken();
+
+    if (nextToken == null) {
+      throw new IOException("Input stream does not contain valid JSON");
+    }
+
+    while (nextToken != null && nextToken != JsonToken.END_OBJECT) {
+      String fieldname = jParser.getCurrentName();
+      if ("Measurements".equals(fieldname)) {
+        jParser.nextToken();
+        jParser.nextToken();
+        break;
+      }
+      nextToken = jParser.nextToken();
+    }
   }
 
   /**
@@ -64,11 +85,18 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
   }
 
   /**
+   * @throws IOException
    * @see FeatureReader#hasNext()
    */
   @Override
-  public boolean hasNext() {
-    return this.featureIterator.hasNext();
+  public boolean hasNext() throws IOException {
+    if (this.jParser.hasCurrentToken() && jParser.getCurrentToken() != JsonToken.END_ARRAY
+        && jParser.getCurrentToken() != JsonToken.END_OBJECT) {
+      return true;
+    }
+    this.jParser.nextToken();
+    return this.jParser.hasCurrentToken() && jParser.getCurrentToken() != JsonToken.END_ARRAY
+        && jParser.getCurrentToken() != JsonToken.END_OBJECT;
   }
 
   /**
@@ -77,11 +105,36 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
    */
   @Override
   public SimpleFeature next() throws NoSuchElementException, IOException {
-    return this.featureIterator.next();
+    if (jParser.hasCurrentToken() && jParser.getCurrentToken() != JsonToken.END_ARRAY
+        && jParser.getCurrentToken() != JsonToken.END_OBJECT) {
+      Measurement val = jParser.readValueAs(Measurement.class);
+
+      SimpleFeatureBuilder b = new SimpleFeatureBuilder(getFeatureType());
+
+      b.set(Measurement.VALUE, val.getValue());
+      b.set(Measurement.TIME_BASE_ID, val.getTimeBaseId());
+      b.set(Measurement.SITE_ID, val.getSiteId());
+      b.set(Measurement.QUALITY_STATUS, val.getQualityStatus());
+      b.set(Measurement.MONITOR_TIME_BASIS, val.getMonitorTimeBasis());
+      b.set(Measurement.MONITOR_SHORT_NAME, val.getMonitorShortName());
+      b.set(Measurement.MONITOR_NAME, val.getMonitorName());
+      b.set(Measurement.MONITOR_ID, val.getMonitorId());
+      b.set(Measurement.LONG, val.getLongitude());
+      b.set(Measurement.LAT, val.getLatitude());
+      b.set(Measurement.IS_STATION_OFFLINE, val.getIsStationOffline());
+      b.set(Measurement.DATE_TIME_START, val.getValue());
+      b.set(Measurement.DATE_TIME_RECORDED, val.getValue());
+      b.set(Measurement.AQI_INDEX, val.getValue());
+      return b.buildFeature(UUID.randomUUID().toString());
+    }
+    throw new NoSuchElementException();
   }
 
   @Override
   public void close() {
-    this.featureIterator.close();
+    try {
+      this.jParser.close();
+    } catch (IOException e) {
+    }
   }
 }

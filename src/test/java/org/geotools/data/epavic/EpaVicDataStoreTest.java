@@ -46,8 +46,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ HttpMethod.class, EpaVicDatastore.class })
 public class EpaVicDataStoreTest {
@@ -138,9 +136,7 @@ public class EpaVicDataStoreTest {
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
         .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/catalog.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/lgaDataset.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/lgaDataset.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
@@ -149,30 +145,12 @@ public class EpaVicDataStoreTest {
         .createFeatureSource(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
     src.getSchema();
     assertTrue(src instanceof EpaVicFeatureSource);
-    assertEquals("LGAProfiles2014Beta", src.getInfo().getName());
+    assertEquals("measurement", src.getInfo().getName());
     assertEquals(EpaVicDataStoreFactoryTest.NAMESPACE, src.getInfo().getSchema().toString());
-    assertEquals(CRS.decode("EPSG:3857"), src.getInfo().getCRS());
-    assertEquals("LGA Profile 2014 (beta)", src.getInfo().getTitle());
-    assertEquals(15661191, src.getInfo().getBounds().getMinX(), 1);
-    assertEquals(-4742385, src.getInfo().getBounds().getMinY(), 1);
-    assertEquals(16706777, src.getInfo().getBounds().getMaxX(), 1);
-    assertEquals(-4022464, src.getInfo().getBounds().getMaxY(), 1);
-    assertEquals("[Health and Human Services, LGA, LGA Profiles]", src.getInfo().getKeywords().toString());
-    assertEquals(
-        "<div>2014 Local Government Area Profiles</div><div><br /></div>https://www2.health.vic.gov.au/about/reporting-planning-data/gis-and-planning-products/geographical-profiles<div>&gt; Please read the data definistions at the link above</div><div>&gt; xls and pdf documents area available at the link above</div><div>&gt; This is a beta release of the 2014 LGA profiles in this format. Field names and types may change during the beta phase. </div><div><br /></div><div>Last updated : 24 May 2016</div><div>Owning agency : Department of Health and Human Services, Victoria</div><div>Copyright statement : https://www.health.vic.gov.au/copyright</div><div>Licence name : https://www.health.vic.gov.au/data-license</div><div>Disclaimer: https://www.health.vic.gov.au/data-disclaimer</div><div>Attribution statement: https://www.health.vic.gov.au/data-attribution</div><div><br /></div><div>Off-line access : Department of Health and Human Services, GPO Box 4057, Melbourne Victoria, 3001</div><div><br /></div><div>Geographic coverage-jurisdiction : Victoria</div>",
-        src.getInfo().getDescription());
+    assertEquals(CRS.decode("EPSG:4283"), src.getInfo().getCRS());
 
     // Feature count test
-    this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(this.clientMock);
-
-    this.postMock = PowerMockito.mock(PostMethod.class);
-    PowerMockito.whenNew(PostMethod.class).withNoArguments().thenReturn(this.postMock);
-    when(this.clientMock.executeMethod(postMock)).thenReturn(HttpStatus.SC_OK);
-    when(this.postMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/count.json"));
-
-    assertEquals(79, src.getCount(new Query()));
+    assertEquals(5996, src.getCount(new Query()));
   }
 
   @Test
@@ -185,9 +163,7 @@ public class EpaVicDataStoreTest {
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
         .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/catalog.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/lgaDataset.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/lgaDataset.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
@@ -197,28 +173,16 @@ public class EpaVicDataStoreTest {
     src.getSchema();
 
     // Test feature iteration
-    this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(this.clientMock);
-
-    this.postMock = PowerMockito.mock(PostMethod.class);
-    PowerMockito.whenNew(PostMethod.class).withNoArguments().thenReturn(this.postMock);
-    when(this.clientMock.executeMethod(postMock)).thenReturn(HttpStatus.SC_OK);
-    when(this.postMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/lgaFeatures.geo.json"));
-
     FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(new Query());
     FeatureIterator iter = fc.features();
 
-    assertEquals(CRS.decode("EPSG:3857"), fc.getSchema().getCoordinateReferenceSystem());
+    assertEquals(CRS.decode("EPSG:4283"), fc.getSchema().getCoordinateReferenceSystem());
     assertEquals(true, iter.hasNext());
     SimpleFeature sf = (SimpleFeature) iter.next();
     assertEquals(true, iter.hasNext());
-    sf = (SimpleFeature) iter.next();
-    assertEquals("POINT (16421261.466298774 -4592239.022226746)",
-        ((Geometry) (sf.getAttribute("geometry"))).getCentroid().toString());
-    assertEquals("Wellington (S)", sf.getAttribute("LGA"));
-    assertEquals(false, iter.hasNext());
-    assertEquals(false, iter.hasNext());
-  }
 
+    while (iter.hasNext()) {
+      iter.next();
+    }
+  }
 }

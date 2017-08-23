@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +122,12 @@ public class EpaVicDatastore extends ContentDataStore {
 
   @Override
   protected List<Name> createTypeNames() {
-    return Arrays.asList(new NameImpl(namespace.toString(), MEASUREMENT));
+    if (!entries.isEmpty()) {
+      return new ArrayList<>(entries.keySet());
+    }
+    NameImpl dsName = new NameImpl(namespace.toString(), MEASUREMENT);
+    this.entries.put(dsName, new ContentEntry(this, dsName));
+    return new ArrayList<>(entries.keySet());
   }
 
   @Override
@@ -151,8 +156,6 @@ public class EpaVicDatastore extends ContentDataStore {
    * Helper method returning a JSON String out of a resource belongining to a ArcGIS ReST API instance (via a GET). If
    * present, it sends authorixzation.
    * 
-   * @param url
-   *          The endpoint of the resource
    * @param params
    *          Request parameters
    * 
@@ -160,29 +163,31 @@ public class EpaVicDatastore extends ContentDataStore {
    * @throws IOException
    * @throws InterruptedException
    */
-  public InputStream retrieveJSON(URL url, Map<String, Object> params) throws IOException {
+  public InputStream retrieveJSON(Map<String, Object> params) throws IOException {
 
     HttpClient client = new HttpClient();
 
     // Sets the URI, request parameters and request body (depending on method
     // type)
-    URI uri = new URI(url.toString(), false);
-    NameValuePair[] kvps = new NameValuePair[params.size()];
-    int i = 0;
-    for (Entry<String, Object> entry : params.entrySet()) {
-      kvps[i++] = new NameValuePair(entry.getKey(), entry.getValue().toString());
+    GetMethod method = new GetMethod();
+    URI uri = new URI(apiUrl.toString(), false);
+
+    if (params != null) {
+      NameValuePair[] kvps = new NameValuePair[params.size()];
+      int i = 0;
+      for (Entry<String, Object> entry : params.entrySet()) {
+        kvps[i++] = new NameValuePair(entry.getKey(), entry.getValue().toString());
+      }
+      method.setQueryString(kvps);
+      uri.setQuery(method.getQueryString());
     }
 
-    GetMethod method = new GetMethod();
-    method.setQueryString(kvps);
-    uri.setQuery(method.getQueryString());
-    this.LOGGER.log(Level.FINER, "About to query GET " + url.toString() + "?" + method.getQueryString());
+    this.LOGGER.log(Level.FINER, "About to query GET " + apiUrl.toString() + "?" + method.getQueryString());
     method.setURI(uri);
 
     // Re-tries the request if necessary
     while (true) {
 
-      // Executes the request (a POST, since the URL may get too long)
       int status = client.executeMethod(method);
 
       // If HTTP error, throws an exception

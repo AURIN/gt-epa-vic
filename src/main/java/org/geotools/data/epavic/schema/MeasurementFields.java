@@ -13,10 +13,10 @@ public enum MeasurementFields {
   LONG(Measurement.LONG, Double.class),
   LAT(Measurement.LAT, Double.class),
   IS_STATION_OFFLINE(Measurement.IS_STATION_OFFLINE, Boolean.class),
-  EQUIPMENT_TYPE(Measurement.MONITOR_ID, String.class),
-  DATE_TIME_START(Measurement.MONITOR_ID, String.class),
-  DATE_TIME_RECORDED(Measurement.MONITOR_ID, String.class),
-  AQI_INDEX(Measurement.MONITOR_ID, Integer.class);
+  EQUIPMENT_TYPE(Measurement.EQUIPMENT_TYPE, String.class),
+  DATE_TIME_START(Measurement.DATE_TIME_START, String.class),
+  DATE_TIME_RECORDED(Measurement.DATE_TIME_RECORDED, String.class),
+  AQI_INDEX(Measurement.AQI_INDEX, Integer.class);
 
   private final Class<?> type;
 

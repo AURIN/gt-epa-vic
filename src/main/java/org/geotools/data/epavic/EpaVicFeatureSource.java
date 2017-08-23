@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -46,6 +45,9 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.referencing.FactoryException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.vividsolutions.jts.geom.Point;
 
 /**
@@ -84,6 +86,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     } catch (FactoryException e) {
       throw new IllegalStateException(e);
     }
+    
+    this.resInfo.setName(EpaVicDatastore.MEASUREMENT);
 
     // Builds the feature type
     SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
@@ -131,7 +135,18 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
   @Override
   protected int getCountInternal(Query query) throws IOException {
-    throw new UnsupportedOperationException();
+
+    JsonFactory jfactory = new JsonFactory();
+    try (JsonParser jParser = jfactory.createParser(dataStore.retrieveJSON(null))) {
+      while (jParser.nextToken() != JsonToken.END_OBJECT) {
+        String fieldname = jParser.getCurrentName();
+        if ("NumberOfMeasurements".equals(fieldname)) {
+          jParser.nextToken();
+          return jParser.getIntValue();
+        }
+      }
+    }
+    return 0;
   }
 
   @Override
@@ -150,7 +165,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     params.put(EpaVicDatastore.FORMAT_PARAM, EpaVicDatastore.FORMAT_GEOJSON);
 
     // Executes the request
-    InputStream result = this.dataStore.retrieveJSON((new URL(this.composeQueryURL())), params);
+    InputStream result = this.dataStore.retrieveJSON(params);
 
     // Returns a reader for the result
     return new EpaVicFeatureReader(this.schema, result);

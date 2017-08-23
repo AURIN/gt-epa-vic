@@ -16,9 +16,7 @@
  */
 package org.geotools.data.epavic;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -27,7 +25,6 @@ import java.util.NoSuchElementException;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -63,7 +60,7 @@ public class EpaVicFeatureReaderTest {
   @Test
   public void noFeaturesHasNext() throws Exception {
 
-    this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noFeatures.geo.json");
+    this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noFeatures.json");
     this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()));
 
     assertFalse(this.reader.hasNext());
@@ -72,25 +69,9 @@ public class EpaVicFeatureReaderTest {
   @Test(expected = NoSuchElementException.class)
   public void noFeaturesNext() throws Exception {
 
-    this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noFeatures.geo.json");
+    this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noFeatures.json");
     this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()));
 
     this.reader.next();
-  }
-
-  @Test
-  public void noProperties() throws Exception {
-
-    this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noProperties.geo.json");
-    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()));
-
-    assertTrue(this.reader.hasNext());
-    SimpleFeature feat = this.reader.next();
-    assertTrue(this.reader.hasNext());
-    feat = this.reader.next();
-    assertTrue(this.reader.hasNext());
-    feat = this.reader.next();
-    assertFalse(this.reader.hasNext());
-    assertEquals("geometry", feat.getDefaultGeometryProperty().getName().getLocalPart());
   }
 }

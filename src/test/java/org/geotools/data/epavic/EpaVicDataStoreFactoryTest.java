@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -47,13 +48,7 @@ public class EpaVicDataStoreFactoryTest {
 
   private static final Logger LOGGER = Logging.getLogger("org.geotools.data.arcgisrest");
 
-  public static String URL = "http://data.dhs.opendata.arcgis.com/data.json";
-
-  public static String WSURL = "https://services.arcgis.com/B7qHofahIc9hrOqB/arcgis/rest/services/LGA_Profile_2014_(beta)/FeatureServer/0";
-
-  public static String URL_ARCGISSERVER = "http://services.arcgis.com/rOo16HdIMeOBI4Mb/ArcGIS/rest/services/Zoning_Data/FeatureServer";
-
-  public static String QUERYURL = WSURL + "/query";
+  private static final String URL = "http://sciwebsvc.epa.vic.gov.au/aqapi/measurements";
 
   public static String NAMESPACE = "http://aurin.org.au";
 
@@ -80,10 +75,11 @@ public class EpaVicDataStoreFactoryTest {
    * @param fileName
    *          File name to load
    * @return JSON content of the file
+   * @throws URISyntaxException
    * @throws FileNotFoundException
    */
-  static String readFile(String path, Charset encoding) throws IOException {
-    byte[] encoded = Files.readAllBytes(Paths.get(path));
+  static String readFile(String path, Charset encoding) throws IOException, URISyntaxException {
+    byte[] encoded = Files.readAllBytes(Paths.get(EpaVicDataStoreFactoryTest.class.getResource(path).toURI()));
     return new String(encoded, encoding);
   }
 
@@ -166,10 +162,10 @@ public class EpaVicDataStoreFactoryTest {
   }
 
   public static EpaVicDatastore createDefaultEPAServerTestDataStore() throws MalformedURLException, IOException {
-    return new EpaVicDatastore(NAMESPACE, URL_ARCGISSERVER);
+    return new EpaVicDatastore(NAMESPACE, URL);
   }
 
-  public static String readJSONAsString(String filePath) throws IOException {
+  public static String readJSONAsString(String filePath) throws IOException, URISyntaxException {
     return readFile(filePath, Charset.forName("UTF-8"));
   }
 }
