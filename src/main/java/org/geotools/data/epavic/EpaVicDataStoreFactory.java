@@ -26,11 +26,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFactorySpi;
-import org.geotools.util.logging.Logging;
 
 /**
  * Data store factory class
@@ -39,9 +37,6 @@ import org.geotools.util.logging.Logging;
  *
  */
 public class EpaVicDataStoreFactory implements DataStoreFactorySpi {
-
-  /** Package's logger */
-  protected static final Logger LOGGER = Logging.getLogger(EpaVicDataStoreFactory.class.getName());
 
   public static final String FACTORY_NAME = "EPAVIC";
 

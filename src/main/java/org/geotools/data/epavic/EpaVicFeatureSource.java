@@ -91,7 +91,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     builder.setName(this.entry.getName());
 
     for (MeasurementFields fld : MeasurementFields.values()) {
-      builder.add(fld.getFieldName(), fld.getClass());
+      builder.add(fld.getFieldName(), fld.getType());
     }
 
     builder.add(EpaVicDatastore.GEOMETRY_ATTR, Point.class);

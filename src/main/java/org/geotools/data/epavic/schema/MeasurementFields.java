@@ -28,10 +28,10 @@ public enum MeasurementFields {
   }
 
   public Class<?> getType() {
-    return type;
+    return this.type;
   }
 
   public String getFieldName() {
-    return fieldName;
+    return this.fieldName;
   }
 }
