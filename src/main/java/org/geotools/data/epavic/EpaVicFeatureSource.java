@@ -22,10 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.logging.Level;
 
 import org.geotools.data.DefaultResourceInfo;
@@ -37,12 +40,17 @@ import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.filter.text.cql2.CQLException;
+import org.geotools.filter.visitor.DefaultFilterVisitor;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.Name;
+import org.opengis.filter.Filter;
+import org.opengis.filter.And;
+import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.referencing.FactoryException;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -58,11 +66,52 @@ import com.vividsolutions.jts.geom.Point;
  */
 public class EpaVicFeatureSource extends ContentFeatureSource {
 
+  // Request parameters
+  public static String SITEID = "SiteId";
+  public static String MONITORID = "MonitorId";
+  public static String TIMEBASISID = "TimeBasisId";
+  public static String FROMDATE = "FromDate";
+  public static String TODATE = "ToDate";
+
   protected EpaVicDatastore dataStore;
-
   protected DefaultResourceInfo resInfo;
-
   protected String objectIdField;
+
+  /**
+   * Inner class used to build the Reuqest parameters. Only "And" logical
+   * connectors with equaility can be used
+   * 
+   * @author lmorandini
+   *
+   */
+  protected final class VisitFilter extends DefaultFilterVisitor {
+
+    public Object visit(And expr, Object data) {
+      Map<String, String> map = (Map<String, String>) data;
+
+      expr.getChildren().forEach((eqExpr) -> {
+        if (eqExpr instanceof And) {
+          this.visit((And) eqExpr, map);
+        }
+        if (eqExpr instanceof PropertyIsEqualTo) {
+          this.visit((PropertyIsEqualTo) eqExpr, map);
+        }
+      });
+
+      return map;
+    }
+
+    public Object visit(PropertyIsEqualTo expr, Object data) {
+      Map<String, String> map = (Map<String, String>) data;
+      System.out.println(">>>> EXPR: " + expr.getExpression1().toString() + " "
+          + expr.getExpression2().toString());
+      ; // XXX
+      map.put(expr.getExpression1().toString(),
+          expr.getExpression2().toString());
+      return map;
+    }
+
+  }
 
   public EpaVicFeatureSource(ContentEntry entry, Query query) {
 
@@ -76,7 +125,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     // Sets the information about the resource
     this.resInfo = new DefaultResourceInfo();
     try {
-      this.resInfo.setSchema(new URI(this.dataStore.getNamespace().toExternalForm()));
+      this.resInfo
+          .setSchema(new URI(this.dataStore.getNamespace().toExternalForm()));
     } catch (URISyntaxException e) {
       // Re-packages the exception to be compatible with method signature
       throw new IOException(e.getMessage(), e.fillInStackTrace());
@@ -86,7 +136,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     } catch (FactoryException e) {
       throw new IllegalStateException(e);
     }
-    
+
     this.resInfo.setName(EpaVicDatastore.MEASUREMENT);
 
     // Builds the feature type
@@ -129,7 +179,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   @Override
-  protected ReferencedEnvelope getBoundsInternal(Query arg0) throws IOException {
+  protected ReferencedEnvelope getBoundsInternal(Query arg0)
+      throws IOException {
     return this.getInfo().getBounds();
   }
 
@@ -137,7 +188,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   protected int getCountInternal(Query query) throws IOException {
 
     JsonFactory jfactory = new JsonFactory();
-    try (JsonParser jParser = jfactory.createParser(dataStore.retrieveJSON(null))) {
+    try (JsonParser jParser = jfactory
+        .createParser(dataStore.retrieveJSON(null))) {
       while (jParser.nextToken() != JsonToken.END_OBJECT) {
         String fieldname = jParser.getCurrentName();
         if ("NumberOfMeasurements".equals(fieldname)) {
@@ -150,13 +202,17 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   @Override
-  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(Query query) throws IOException {
+  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(
+      Query query) throws IOException {
 
-    Map<String, Object> params = new HashMap<String, Object>(EpaVicDatastore.DEFAULT_PARAMS);
+    Map<String, Object> params = new HashMap<String, Object>(
+        EpaVicDatastore.DEFAULT_PARAMS);
 
-    // params.put(EpaVicDatastore.GEOMETRY_PARAM, this.composeExtent(this.getBounds(query)));
+    // params.put(EpaVicDatastore.GEOMETRY_PARAM,
+    // this.composeExtent(this.getBounds(query)));
 
-    // params.put(EpaVicDatastore.GEOMETRY_PARAM, this.composeExtent(this.getBounds(query)));
+    // params.put(EpaVicDatastore.GEOMETRY_PARAM,
+    // this.composeExtent(this.getBounds(query)));
 
     // Sets the atttributes to return
     params.put(EpaVicDatastore.ATTRIBUTES_PARAM, this.composeAttributes(query));
@@ -189,12 +245,14 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     joiner.add(this.objectIdField);
 
     if (query.retrieveAllProperties()) {
-      Iterator<AttributeDescriptor> iter = this.schema.getAttributeDescriptors().iterator();
+      Iterator<AttributeDescriptor> iter = this.schema.getAttributeDescriptors()
+          .iterator();
       while (iter.hasNext()) {
         AttributeDescriptor attr = iter.next();
         // Skips ID and geometry field
         if (!attr.getLocalName().equalsIgnoreCase(this.objectIdField)
-            && !attr.getLocalName().equalsIgnoreCase(this.schema.getGeometryDescriptor().getLocalName())) {
+            && !attr.getLocalName().equalsIgnoreCase(
+                this.schema.getGeometryDescriptor().getLocalName())) {
           joiner.add(iter.next().getLocalName());
         }
       }
@@ -202,13 +260,48 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       for (String attr : query.getPropertyNames()) {
         // Skips ID and geometry field
         if (!attr.equalsIgnoreCase(this.objectIdField)
-            && !attr.equalsIgnoreCase(this.schema.getGeometryDescriptor().getLocalName())) {
+            && !attr.equalsIgnoreCase(
+                this.schema.getGeometryDescriptor().getLocalName())) {
           joiner.add(attr);
         }
       }
     }
 
     return joiner.toString();
+  }
+
+  /**
+   * Returns a map of KVP parameters extracted from the ECQL Filter
+   *
+   * @param filter
+   *          ECQL Filter
+   * @return Map of parameters and values
+   */
+  public Map<String, String> composeRequestParameters(Filter filter)
+      throws CQLException {
+
+    Map<String, String> requestParams = null;
+
+    try {
+      requestParams = (Map<String, String>) filter.accept(
+          new EpaVicFeatureSource.VisitFilter(),
+          new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
+    } catch (Exception e) {
+      CQLException ce = new CQLException("The " + filter.toString()
+          + " CQL expression is incorrect: " + e.getMessage());
+      ce.setStackTrace(e.getStackTrace());
+    }
+
+    if (requestParams.size() != 4 || !requestParams.containsKey(MONITORID)
+        || !requestParams.containsKey(TIMEBASISID)
+        || !requestParams.containsKey(FROMDATE)
+        || !requestParams.containsKey(TODATE)) {
+      throw new CQLException("The " + filter.toString()
+          + " CQL expression is incorrect: it has to have "
+          + "MonitorID, TimeBasisID, FromDate and ToDate euqaility expression tied by 'And' logical predicate.");
+    }
+
+    return requestParams;
   }
 
   /**
