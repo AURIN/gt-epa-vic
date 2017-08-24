@@ -132,7 +132,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       throw new IOException(e.getMessage(), e.fillInStackTrace());
     }
     try {
-      this.resInfo.setCRS(CRS.decode("EPSG:4283"));
+      this.resInfo.setCRS(CRS.decode(EpaVicDatastore.EPACRS));
     } catch (FactoryException e) {
       throw new IllegalStateException(e);
     }

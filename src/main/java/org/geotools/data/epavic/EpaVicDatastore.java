@@ -102,6 +102,8 @@ public class EpaVicDatastore extends ContentDataStore {
 
   protected URL apiUrl;
 
+  public static final String EPACRS = "EPSG:4283";
+
   public EpaVicDatastore(String namespaceIn, String apiEndpoint) throws MalformedURLException, IOException {
 
     super();

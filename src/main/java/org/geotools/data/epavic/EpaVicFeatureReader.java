@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.epavic.schema.Measurement;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.geometry.jts.GeometryBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
@@ -33,6 +34,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * Feature reader of the GeoJSON features
@@ -125,6 +127,11 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
       b.set(Measurement.DATE_TIME_START, val.getValue());
       b.set(Measurement.DATE_TIME_RECORDED, val.getValue());
       b.set(Measurement.AQI_INDEX, val.getValue());
+
+      GeometryBuilder builder = new GeometryBuilder();
+      Point point = builder.point(val.getLongitude(), val.getLatitude());
+      b.set(EpaVicDatastore.GEOMETRY_ATTR, point);
+
       return b.buildFeature(UUID.randomUUID().toString());
     }
     throw new NoSuchElementException();

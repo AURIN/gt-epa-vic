@@ -46,6 +46,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.vividsolutions.jts.geom.Point;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ HttpMethod.class, EpaVicDatastore.class })
 public class EpaVicDataStoreTest {
@@ -179,6 +181,9 @@ public class EpaVicDataStoreTest {
     assertEquals(CRS.decode("EPSG:4283"), fc.getSchema().getCoordinateReferenceSystem());
     assertEquals(true, iter.hasNext());
     SimpleFeature sf = (SimpleFeature) iter.next();
+    Point p = (Point) sf.getDefaultGeometry();
+    assertEquals(145.0306, p.getX(), 0.001);
+    assertEquals(-37.77832, p.getY(), 0.001);
     assertEquals(true, iter.hasNext());
 
     while (iter.hasNext()) {
