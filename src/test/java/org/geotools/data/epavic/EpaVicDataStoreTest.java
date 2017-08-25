@@ -16,9 +16,11 @@
  */
 package org.geotools.data.epavic;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -27,6 +29,7 @@ import java.util.List;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.geotools.data.FeatureSource;
@@ -34,14 +37,17 @@ import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.NameImpl;
+import org.geotools.filter.text.ecql.ECQL;
 import org.geotools.referencing.CRS;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.Name;
+import org.opengis.filter.Filter;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -185,6 +191,51 @@ public class EpaVicDataStoreTest {
     assertEquals(145.0306, p.getX(), 0.001);
     assertEquals(-37.77832, p.getY(), 0.001);
     assertEquals(true, iter.hasNext());
+
+    while (iter.hasNext()) {
+      iter.next();
+    }
+  }
+
+  @Test
+  public void testFeaturesWithFilter() throws Exception {
+
+    this.clientMock = PowerMockito.mock(HttpClient.class);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock).thenReturn(clientMock);
+    this.getMock = PowerMockito.mock(GetMethod.class);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK);
+    when(getMock.getResponseBodyAsStream())
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
+
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+    this.dataStore.createTypeNames();
+
+    FeatureSource<SimpleFeatureType, SimpleFeature> src = this.dataStore
+        .createFeatureSource(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
+    src.getSchema();
+
+    Filter filter = ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
+        + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND FromDate='2009020706' AND ToDate='2009020723'");
+
+    // Test feature iteration
+    FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(new Query("measurement", filter));
+    FeatureIterator iter = fc.features();
+    if (iter.hasNext()) {
+      iter.next();
+    }
+
+    NameValuePair[] check = new NameValuePair[4];
+    check[0] = new NameValuePair(EpaVicFeatureSource.FROMDATE, "2009020706");
+    check[1] = new NameValuePair(EpaVicFeatureSource.MONITORID, "PM10");
+    check[2] = new NameValuePair(EpaVicFeatureSource.TIMEBASISID, "24HR_RAV");
+    check[3] = new NameValuePair(EpaVicFeatureSource.TODATE, "2009020723");
+
+    ArgumentCaptor<NameValuePair[]> captor = ArgumentCaptor.forClass(NameValuePair[].class);
+    verify(getMock).setQueryString(captor.capture());
+    NameValuePair[] getMethodCalled = captor.getValue();
+    assertArrayEquals(check, getMethodCalled);
 
     while (iter.hasNext()) {
       iter.next();

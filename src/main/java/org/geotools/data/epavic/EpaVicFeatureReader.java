@@ -24,6 +24,8 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.geotools.data.FeatureReader;
+import org.geotools.data.epavic.schema.AQICategoryThreshold;
+import org.geotools.data.epavic.schema.HealthCategoryThreshold;
 import org.geotools.data.epavic.schema.Measurement;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geometry.jts.GeometryBuilder;
@@ -127,6 +129,24 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
       b.set(Measurement.DATE_TIME_START, val.getValue());
       b.set(Measurement.DATE_TIME_RECORDED, val.getValue());
       b.set(Measurement.AQI_INDEX, val.getValue());
+      b.set(Measurement.EQUIPMENT_TYPE, val.getEquipmentType().getDescription());
+      b.set(AQICategoryThreshold.AQI_BACKGROUND_COLOUR, val.getaQICategoryThreshold().getaQIBackgroundColour());
+      b.set(AQICategoryThreshold.AQI_CATEGORY_ABBREVIATION, val.getaQICategoryThreshold().getaQICategoryAbbreviation());
+      b.set(AQICategoryThreshold.AQI_CATEGORY_DESCRIPTION, val.getaQICategoryThreshold().getaQICategoryDescription());
+      b.set(AQICategoryThreshold.AQI_FOREGROUND_COLOUR, val.getaQICategoryThreshold().getaQIForegroundColour());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_BACKGROUND_COLOUR,
+          val.getHealthCategoryThreshold().getHealthCategoryBackgroundColour());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_DESCRIPTION,
+          val.getHealthCategoryThreshold().getHealthCategoryDescription());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_FOREGROUND_COLOUR,
+          val.getHealthCategoryThreshold().getHealthCategoryForegroundColour());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_LEVEL, val.getHealthCategoryThreshold().getHealthCategoryLevel());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_MESSAGE,
+          val.getHealthCategoryThreshold().getHealthCategoryMessage());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_VALUE_RANGE_TEXT,
+          val.getHealthCategoryThreshold().getHealthCategoryValueRangeText());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_VISIBILITY_TEXT,
+          val.getHealthCategoryThreshold().getHealthCategoryVisibilityText());
 
       GeometryBuilder builder = new GeometryBuilder();
       Point point = builder.point(val.getLongitude(), val.getLatitude());

@@ -3,16 +3,25 @@ package org.geotools.data.epavic.schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AQICategoryThreshold {
-  @JsonProperty("AQIBackgroundColour")
+
+  public static final String AQI_FOREGROUND_COLOUR = "AQIForegroundColour";
+
+  public static final String AQI_CATEGORY_DESCRIPTION = "AQICategoryDescription";
+
+  public static final String AQI_CATEGORY_ABBREVIATION = "AQICategoryAbbreviation";
+
+  public static final String AQI_BACKGROUND_COLOUR = "AQIBackgroundColour";
+
+  @JsonProperty(AQI_BACKGROUND_COLOUR)
   private String aQIBackgroundColour;
 
-  @JsonProperty("AQICategoryAbbreviation")
+  @JsonProperty(AQI_CATEGORY_ABBREVIATION)
   private String aQICategoryAbbreviation;
 
-  @JsonProperty("AQICategoryDescription")
+  @JsonProperty(AQI_CATEGORY_DESCRIPTION)
   private String aQICategoryDescription;
 
-  @JsonProperty("AQIForegroundColour")
+  @JsonProperty(AQI_FOREGROUND_COLOUR)
   private String aQIForegroundColour;
 
   public AQICategoryThreshold() {

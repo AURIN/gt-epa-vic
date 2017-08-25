@@ -63,14 +63,10 @@ public class EpaVicDatastore extends ContentDataStore {
 
   public static final String FORMAT_PARAM = "f";
 
-  public static final String ATTRIBUTES_PARAM = "outFields";
-
   public static final String WITHGEOMETRY_PARAM = "returnGeometry";
 
   // Parameter values
   public static final String FORMAT_JSON = "json";
-
-  public static final String FORMAT_GEOJSON = "geojson";
 
   public static final String CAPABILITIES_QUERY = "Query";
 
@@ -78,17 +74,6 @@ public class EpaVicDatastore extends ContentDataStore {
   protected static final int REQUEST_THREADS = 5;
 
   protected static final int REQUEST_TIMEOUT = 60;
-
-  // Default request parameter values
-  public static Map<String, Object> DEFAULT_PARAMS = new HashMap<>();
-
-  static {
-    DEFAULT_PARAMS.put(FORMAT_PARAM, FORMAT_JSON);
-    DEFAULT_PARAMS.put(WITHGEOMETRY_PARAM, "true");
-  }
-
-  // ArcGIS Server parameters
-  public static String FEATURESERVER_SERVICE = "FeatureServer";
 
   // Cache of feature sources
   protected Map<Name, EpaVicFeatureSource> featureSources = new HashMap<>();
@@ -165,7 +150,7 @@ public class EpaVicDatastore extends ContentDataStore {
    * @throws IOException
    * @throws InterruptedException
    */
-  public InputStream retrieveJSON(Map<String, Object> params) throws IOException {
+  public InputStream retrieveJSON(Map<String, String> params) throws IOException {
 
     HttpClient client = new HttpClient();
 
@@ -177,7 +162,7 @@ public class EpaVicDatastore extends ContentDataStore {
     if (params != null) {
       NameValuePair[] kvps = new NameValuePair[params.size()];
       int i = 0;
-      for (Entry<String, Object> entry : params.entrySet()) {
+      for (Entry<String, String> entry : params.entrySet()) {
         kvps[i++] = new NameValuePair(entry.getKey(), entry.getValue().toString());
       }
       method.setQueryString(kvps);

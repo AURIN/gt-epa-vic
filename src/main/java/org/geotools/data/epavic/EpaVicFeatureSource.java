@@ -22,10 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -48,8 +46,8 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.Name;
-import org.opengis.filter.Filter;
 import org.opengis.filter.And;
+import org.opengis.filter.Filter;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.referencing.FactoryException;
 
@@ -68,18 +66,23 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
   // Request parameters
   public static String SITEID = "SiteId";
+
   public static String MONITORID = "MonitorId";
+
   public static String TIMEBASISID = "TimeBasisId";
+
   public static String FROMDATE = "FromDate";
+
   public static String TODATE = "ToDate";
 
   protected EpaVicDatastore dataStore;
+
   protected DefaultResourceInfo resInfo;
+
   protected String objectIdField;
 
   /**
-   * Inner class used to build the Reuqest parameters. Only "And" logical
-   * connectors with equaility can be used
+   * Inner class used to build the request parameters. Only "And" logical connectors with equality can be used
    * 
    * @author lmorandini
    *
@@ -103,11 +106,9 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
     public Object visit(PropertyIsEqualTo expr, Object data) {
       Map<String, String> map = (Map<String, String>) data;
-      System.out.println(">>>> EXPR: " + expr.getExpression1().toString() + " "
-          + expr.getExpression2().toString());
+      System.out.println(">>>> EXPR: " + expr.getExpression1().toString() + " " + expr.getExpression2().toString());
       ; // XXX
-      map.put(expr.getExpression1().toString(),
-          expr.getExpression2().toString());
+      map.put(expr.getExpression1().toString(), expr.getExpression2().toString());
       return map;
     }
 
@@ -125,8 +126,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     // Sets the information about the resource
     this.resInfo = new DefaultResourceInfo();
     try {
-      this.resInfo
-          .setSchema(new URI(this.dataStore.getNamespace().toExternalForm()));
+      this.resInfo.setSchema(new URI(this.dataStore.getNamespace().toExternalForm()));
     } catch (URISyntaxException e) {
       // Re-packages the exception to be compatible with method signature
       throw new IOException(e.getMessage(), e.fillInStackTrace());
@@ -179,8 +179,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   @Override
-  protected ReferencedEnvelope getBoundsInternal(Query arg0)
-      throws IOException {
+  protected ReferencedEnvelope getBoundsInternal(Query arg0) throws IOException {
     return this.getInfo().getBounds();
   }
 
@@ -188,8 +187,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   protected int getCountInternal(Query query) throws IOException {
 
     JsonFactory jfactory = new JsonFactory();
-    try (JsonParser jParser = jfactory
-        .createParser(dataStore.retrieveJSON(null))) {
+    try (JsonParser jParser = jfactory.createParser(dataStore.retrieveJSON(null))) {
       while (jParser.nextToken() != JsonToken.END_OBJECT) {
         String fieldname = jParser.getCurrentName();
         if ("NumberOfMeasurements".equals(fieldname)) {
@@ -202,23 +200,14 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   @Override
-  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(
-      Query query) throws IOException {
+  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(Query query) throws IOException {
 
-    Map<String, Object> params = new HashMap<String, Object>(
-        EpaVicDatastore.DEFAULT_PARAMS);
-
-    // params.put(EpaVicDatastore.GEOMETRY_PARAM,
-    // this.composeExtent(this.getBounds(query)));
-
-    // params.put(EpaVicDatastore.GEOMETRY_PARAM,
-    // this.composeExtent(this.getBounds(query)));
-
-    // Sets the atttributes to return
-    params.put(EpaVicDatastore.ATTRIBUTES_PARAM, this.composeAttributes(query));
-
-    // Sets the outpout to GeoJSON
-    params.put(EpaVicDatastore.FORMAT_PARAM, EpaVicDatastore.FORMAT_GEOJSON);
+    Map<String, String> params;
+    try {
+      params = composeRequestParameters(query.getFilter());
+    } catch (CQLException e) {
+      throw new IOException(e);
+    }
 
     // Executes the request
     InputStream result = this.dataStore.retrieveJSON(params);
@@ -245,14 +234,12 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     joiner.add(this.objectIdField);
 
     if (query.retrieveAllProperties()) {
-      Iterator<AttributeDescriptor> iter = this.schema.getAttributeDescriptors()
-          .iterator();
+      Iterator<AttributeDescriptor> iter = this.schema.getAttributeDescriptors().iterator();
       while (iter.hasNext()) {
         AttributeDescriptor attr = iter.next();
         // Skips ID and geometry field
         if (!attr.getLocalName().equalsIgnoreCase(this.objectIdField)
-            && !attr.getLocalName().equalsIgnoreCase(
-                this.schema.getGeometryDescriptor().getLocalName())) {
+            && !attr.getLocalName().equalsIgnoreCase(this.schema.getGeometryDescriptor().getLocalName())) {
           joiner.add(iter.next().getLocalName());
         }
       }
@@ -260,8 +247,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       for (String attr : query.getPropertyNames()) {
         // Skips ID and geometry field
         if (!attr.equalsIgnoreCase(this.objectIdField)
-            && !attr.equalsIgnoreCase(
-                this.schema.getGeometryDescriptor().getLocalName())) {
+            && !attr.equalsIgnoreCase(this.schema.getGeometryDescriptor().getLocalName())) {
           joiner.add(attr);
         }
       }
@@ -277,40 +263,30 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
    *          ECQL Filter
    * @return Map of parameters and values
    */
-  public Map<String, String> composeRequestParameters(Filter filter)
-      throws CQLException {
+  public Map<String, String> composeRequestParameters(Filter filter) throws CQLException {
 
     Map<String, String> requestParams = null;
 
     try {
-      requestParams = (Map<String, String>) filter.accept(
-          new EpaVicFeatureSource.VisitFilter(),
+      requestParams = (Map<String, String>) filter.accept(new EpaVicFeatureSource.VisitFilter(),
           new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
     } catch (Exception e) {
-      CQLException ce = new CQLException("The " + filter.toString()
-          + " CQL expression is incorrect: " + e.getMessage());
+      CQLException ce = new CQLException(
+          "The " + filter.toString() + " CQL expression is incorrect: " + e.getMessage());
       ce.setStackTrace(e.getStackTrace());
+      throw ce;
     }
 
-    if (requestParams.size() != 4 || !requestParams.containsKey(MONITORID)
-        || !requestParams.containsKey(TIMEBASISID)
-        || !requestParams.containsKey(FROMDATE)
-        || !requestParams.containsKey(TODATE)) {
-      throw new CQLException("The " + filter.toString()
-          + " CQL expression is incorrect: it has to have "
+    if (requestParams.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    if (requestParams.size() != 4 || !requestParams.containsKey(MONITORID) || !requestParams.containsKey(TIMEBASISID)
+        || !requestParams.containsKey(FROMDATE) || !requestParams.containsKey(TODATE)) {
+      throw new CQLException("The " + filter.toString() + " CQL expression is incorrect: it has to have "
           + "MonitorID, TimeBasisID, FromDate and ToDate euqaility expression tied by 'And' logical predicate.");
     }
 
     return requestParams;
   }
-
-  /**
-   * Compose the query URL of the instance's dataset
-   * 
-   * @return query URL
-   */
-  protected String composeQueryURL() {
-    return this.schema.getUserData().get("serviceUrl") + "/query";
-  }
-
 }

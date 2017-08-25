@@ -212,6 +212,24 @@ public class Measurement {
     this.monitorTimeBasis = monitorTimeBasis;
   }
 
+  @JsonUnwrapped
+  public AQICategoryThreshold getaQICategoryThreshold() {
+    return aQICategoryThreshold;
+  }
+
+  public void setaQICategoryThreshold(AQICategoryThreshold aQICategoryThreshold) {
+    this.aQICategoryThreshold = aQICategoryThreshold;
+  }
+
+  @JsonUnwrapped
+  public HealthCategoryThreshold getHealthCategoryThreshold() {
+    return healthCategoryThreshold;
+  }
+
+  public void setHealthCategoryThreshold(HealthCategoryThreshold healthCategoryThreshold) {
+    this.healthCategoryThreshold = healthCategoryThreshold;
+  }
+
   @JsonProperty(QUALITY_STATUS)
   public Integer getQualityStatus() {
     return qualityStatus;

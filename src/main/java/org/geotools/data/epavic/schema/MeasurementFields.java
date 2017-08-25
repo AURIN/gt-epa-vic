@@ -16,7 +16,18 @@ public enum MeasurementFields {
   EQUIPMENT_TYPE(Measurement.EQUIPMENT_TYPE, String.class),
   DATE_TIME_START(Measurement.DATE_TIME_START, String.class),
   DATE_TIME_RECORDED(Measurement.DATE_TIME_RECORDED, String.class),
-  AQI_INDEX(Measurement.AQI_INDEX, Integer.class);
+  AQI_INDEX(Measurement.AQI_INDEX, Integer.class),
+  HEALTH_CATEGORY_VISIBILITY_TEXT(HealthCategoryThreshold.HEALTH_CATEGORY_VISIBILITY_TEXT, String.class),
+  HEALTH_CATEGORY_VALUE_RANGE_TEXT(HealthCategoryThreshold.HEALTH_CATEGORY_VALUE_RANGE_TEXT, String.class),
+  HEALTH_CATEGORY_MESSAGE(HealthCategoryThreshold.HEALTH_CATEGORY_MESSAGE, String.class),
+  HEALTH_CATEGORY_LEVEL(HealthCategoryThreshold.HEALTH_CATEGORY_LEVEL, Integer.class),
+  HEALTH_CATEGORY_FOREGROUND_COLOUR(HealthCategoryThreshold.HEALTH_CATEGORY_FOREGROUND_COLOUR, String.class),
+  HEALTH_CATEGORY_DESCRIPTION(HealthCategoryThreshold.HEALTH_CATEGORY_DESCRIPTION, String.class),
+  HEALTH_CATEGORY_BACKGROUND_COLOUR(HealthCategoryThreshold.HEALTH_CATEGORY_BACKGROUND_COLOUR, String.class),
+  AQI_FOREGROUND_COLOUR(AQICategoryThreshold.AQI_FOREGROUND_COLOUR, String.class),
+  AQI_CATEGORY_DESCRIPTION(AQICategoryThreshold.AQI_CATEGORY_DESCRIPTION, String.class),
+  AQI_CATEGORY_ABBREVIATION(AQICategoryThreshold.AQI_CATEGORY_ABBREVIATION, String.class),
+  AQI_BACKGROUND_COLOUR(AQICategoryThreshold.AQI_BACKGROUND_COLOUR, String.class);
 
   private final Class<?> type;
 

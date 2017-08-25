@@ -3,25 +3,40 @@ package org.geotools.data.epavic.schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class HealthCategoryThreshold {
-  @JsonProperty("HealthCategoryBackgroundColour")
+
+  public static final String HEALTH_CATEGORY_VISIBILITY_TEXT = "HealthCategoryVisibilityText";
+
+  public static final String HEALTH_CATEGORY_VALUE_RANGE_TEXT = "HealthCategoryValueRangeText";
+
+  public static final String HEALTH_CATEGORY_MESSAGE = "HealthCategoryMessage";
+
+  public static final String HEALTH_CATEGORY_LEVEL = "HealthCategoryLevel";
+
+  public static final String HEALTH_CATEGORY_FOREGROUND_COLOUR = "HealthCategoryForegroundColour";
+
+  public static final String HEALTH_CATEGORY_DESCRIPTION = "HealthCategoryDescription";
+
+  public static final String HEALTH_CATEGORY_BACKGROUND_COLOUR = "HealthCategoryBackgroundColour";
+
+  @JsonProperty(HEALTH_CATEGORY_BACKGROUND_COLOUR)
   private String healthCategoryBackgroundColour;
 
-  @JsonProperty("HealthCategoryDescription")
+  @JsonProperty(HEALTH_CATEGORY_DESCRIPTION)
   private String healthCategoryDescription;
 
-  @JsonProperty("HealthCategoryForegroundColour")
+  @JsonProperty(HEALTH_CATEGORY_FOREGROUND_COLOUR)
   private String healthCategoryForegroundColour;
 
-  @JsonProperty("HealthCategoryLevel")
+  @JsonProperty(HEALTH_CATEGORY_LEVEL)
   private Integer healthCategoryLevel;
 
-  @JsonProperty("HealthCategoryMessage")
+  @JsonProperty(HEALTH_CATEGORY_MESSAGE)
   private String healthCategoryMessage;
 
-  @JsonProperty("HealthCategoryValueRangeText")
+  @JsonProperty(HEALTH_CATEGORY_VALUE_RANGE_TEXT)
   private String healthCategoryValueRangeText;
 
-  @JsonProperty("HealthCategoryVisibilityText")
+  @JsonProperty(HEALTH_CATEGORY_VISIBILITY_TEXT)
   private String healthCategoryVisibilityText;
 
   public HealthCategoryThreshold() {
