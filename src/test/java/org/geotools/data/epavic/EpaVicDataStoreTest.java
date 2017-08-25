@@ -66,8 +66,6 @@ public class EpaVicDataStoreTest {
 
   private GetMethod getMock;
 
-  private PostMethod postMock;
-
   @Before
   public void setUp() throws Exception {
   }
@@ -144,7 +142,7 @@ public class EpaVicDataStoreTest {
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
         .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
@@ -158,7 +156,7 @@ public class EpaVicDataStoreTest {
     assertEquals(CRS.decode("EPSG:4283"), src.getInfo().getCRS());
 
     // Feature count test
-    assertEquals(5996, src.getCount(new Query()));
+    assertEquals(9, src.getCount(new Query()));
   }
 
   @Test

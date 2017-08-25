@@ -23,17 +23,24 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.geotools.data.DefaultResourceInfo;
 import org.geotools.data.FeatureReader;
 import org.geotools.data.Query;
 import org.geotools.data.ResourceInfo;
 import org.geotools.data.epavic.schema.MeasurementFields;
+import org.geotools.data.epavic.schema.Site;
+import org.geotools.data.epavic.schema.Sites;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
@@ -50,6 +57,7 @@ import org.opengis.filter.And;
 import org.opengis.filter.Filter;
 import org.opengis.filter.PropertyIsEqualTo;
 import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -139,20 +147,28 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
     this.resInfo.setName(EpaVicDatastore.MEASUREMENT);
 
+    try {
+      this.schema = buildType();
+    } catch (FactoryException e) {
+      throw new IOException(e);
+    }
+
+    return this.schema;
+  }
+
+  public static SimpleFeatureType buildType() throws NoSuchAuthorityCodeException, FactoryException {
     // Builds the feature type
     SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-    builder.setCRS(this.resInfo.getCRS());
-    builder.setName(this.entry.getName());
+    builder.setCRS(CRS.decode(EpaVicDatastore.EPACRS));
+    builder.setName(EpaVicDatastore.MEASUREMENT);
 
     for (MeasurementFields fld : MeasurementFields.values()) {
       builder.add(fld.getFieldName(), fld.getType());
     }
 
     builder.add(EpaVicDatastore.GEOMETRY_ATTR, Point.class);
-
-    this.schema = builder.buildFeatureType();
-
-    return this.schema;
+    SimpleFeatureType buildFeatureType = builder.buildFeatureType();
+    return buildFeatureType;
   }
 
   @Override
@@ -186,34 +202,68 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   @Override
   protected int getCountInternal(Query query) throws IOException {
 
-    JsonFactory jfactory = new JsonFactory();
-    try (JsonParser jParser = jfactory.createParser(dataStore.retrieveJSON(null))) {
-      while (jParser.nextToken() != JsonToken.END_OBJECT) {
-        String fieldname = jParser.getCurrentName();
-        if ("NumberOfMeasurements".equals(fieldname)) {
-          jParser.nextToken();
-          return jParser.getIntValue();
+    try {
+      Queue<InputStream> siteStreams = loadSiteStreams(query);
+
+      int totalMeasurements = 0;
+      for (InputStream inputStream : siteStreams) {
+        JsonFactory jfactory = new JsonFactory();
+        try (JsonParser jParser = jfactory.createParser(inputStream)) {
+          while (jParser.nextToken() != JsonToken.END_OBJECT) {
+            String fieldname = jParser.getCurrentName();
+            if ("NumberOfMeasurements".equals(fieldname)) {
+              jParser.nextToken();
+              totalMeasurements += jParser.getIntValue();
+            }
+          }
         }
       }
+      return totalMeasurements;
+    } catch (CQLException e) {
+      throw new IllegalArgumentException(e);
     }
-    return 0;
   }
 
   @Override
   protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(Query query) throws IOException {
 
-    Map<String, String> params;
     try {
-      params = composeRequestParameters(query.getFilter());
+      Queue<InputStream> siteStreams = loadSiteStreams(query);
+
+      // Returns a reader for the result
+      return new EpaVicFeatureReader(this.schema, siteStreams);
+
     } catch (CQLException e) {
       throw new IOException(e);
     }
+  }
 
-    // Executes the request
-    InputStream result = this.dataStore.retrieveJSON(params);
+  private Queue<InputStream> loadSiteStreams(Query query) throws CQLException, IOException {
+    Map<String, String> params = composeRequestParameters(query.getFilter());
+    ReferencedEnvelope bbox = getBBox(query.getFilter());
 
-    // Returns a reader for the result
-    return new EpaVicFeatureReader(this.schema, result);
+    List<Site> sitesToRetrieve = Collections.emptyList();
+    if (bbox != null) {
+      Sites sites = this.dataStore.retrieveSitesJSON();
+      sitesToRetrieve = sites.getSites().stream().filter(site -> bbox.contains(site.getLongitude(), site.getLatitude()))
+          .collect(Collectors.toList());
+    }
+
+    Queue<InputStream> siteStreams = new LinkedList<>();
+    if (sitesToRetrieve.isEmpty()) {
+      siteStreams.add(this.dataStore.retrieveJSON(params));
+    } else {
+      for (Site s : sitesToRetrieve) {
+        Map<String, String> p = new HashMap<>(params);
+        p.put(SITEID, s.getSiteId().toString());
+        siteStreams.add(this.dataStore.retrieveJSON(params));
+      }
+    }
+    return siteStreams;
+  }
+
+  private ReferencedEnvelope getBBox(Filter filter) {
+    return null;
   }
 
   /**

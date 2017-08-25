@@ -46,7 +46,8 @@ public class EpaVicDataStoreFactory implements DataStoreFactorySpi {
 
   public static final Param NAMESPACE_PARAM = new Param("namespace", String.class, "", true);
 
-  public static final Param URL_PARAM = new Param("Endpoint of the EPA VIC web service", String.class, "", true);
+  public static final Param URL_PARAM = new Param("EPA VIC web service", String.class,
+      "Endpoint of the EPA VIC web service", true, "http://sciwebsvc.epa.vic.gov.au/aqapi");
 
   static {
     paramMetadata.add(NAMESPACE_PARAM);

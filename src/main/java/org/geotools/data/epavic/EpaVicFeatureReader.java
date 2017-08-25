@@ -20,7 +20,10 @@ package org.geotools.data.epavic;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.UUID;
 
 import org.geotools.data.FeatureReader;
@@ -33,6 +36,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,19 +57,35 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
 
   private JsonParser jParser;
 
-  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn, InputStream iStream) throws IOException {
+  private Queue<InputStream> siteStreams;
+
+  private JsonFactory jfactory = new JsonFactory();
+
+  private ObjectMapper om = new ObjectMapper();
+
+  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn, InputStream stream) throws IOException {
+    this(featureTypeIn, new LinkedList<>(Arrays.asList(stream)));
+  }
+
+  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn, Queue<InputStream> siteStreams) throws IOException {
     this.featureType = featureTypeIn;
+    this.siteStreams = siteStreams;
     this.featIndex = 0;
 
-    JsonFactory jfactory = new JsonFactory();
-    jParser = jfactory.createParser(iStream);
-    jParser.setCodec(new ObjectMapper());
-    JsonToken nextToken = jParser.nextToken();
+    if (siteStreams.isEmpty()) {
+      throw new IllegalArgumentException("Reader requires an input stream");
+    }
 
+    initJParser();
+  }
+
+  private void initJParser() throws IOException, JsonParseException {
+    this.jParser = jfactory.createParser(siteStreams.poll());
+    this.jParser.setCodec(om);
+    JsonToken nextToken = jParser.nextToken();
     if (nextToken == null) {
       throw new IOException("Input stream does not contain valid JSON");
     }
-
     while (nextToken != null && nextToken != JsonToken.END_OBJECT) {
       String fieldname = jParser.getCurrentName();
       if ("Measurements".equals(fieldname)) {
@@ -94,13 +114,20 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
    */
   @Override
   public boolean hasNext() throws IOException {
-    if (this.jParser.hasCurrentToken() && jParser.getCurrentToken() != JsonToken.END_ARRAY
-        && jParser.getCurrentToken() != JsonToken.END_OBJECT) {
+    if (isParserCurrent(jParser)) {
       return true;
     }
     this.jParser.nextToken();
-    return this.jParser.hasCurrentToken() && jParser.getCurrentToken() != JsonToken.END_ARRAY
-        && jParser.getCurrentToken() != JsonToken.END_OBJECT;
+    if (!isParserCurrent(jParser) && !siteStreams.isEmpty()) {
+      System.out.println("Creating new parser");
+      initJParser();
+    }
+    return isParserCurrent(jParser);
+  }
+
+  private boolean isParserCurrent(JsonParser parser) {
+    return parser.hasCurrentToken() && parser.getCurrentToken() != JsonToken.END_ARRAY
+        && parser.getCurrentToken() != JsonToken.END_OBJECT;
   }
 
   /**
@@ -129,7 +156,8 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
       b.set(Measurement.DATE_TIME_START, val.getValue());
       b.set(Measurement.DATE_TIME_RECORDED, val.getValue());
       b.set(Measurement.AQI_INDEX, val.getValue());
-      b.set(Measurement.EQUIPMENT_TYPE, val.getEquipmentType().getDescription());
+      b.set(Measurement.EQUIPMENT_TYPE,
+          val.getEquipmentType() == null ? null : val.getEquipmentType().getDescription());
       b.set(AQICategoryThreshold.AQI_BACKGROUND_COLOUR, val.getaQICategoryThreshold().getaQIBackgroundColour());
       b.set(AQICategoryThreshold.AQI_CATEGORY_ABBREVIATION, val.getaQICategoryThreshold().getaQICategoryAbbreviation());
       b.set(AQICategoryThreshold.AQI_CATEGORY_DESCRIPTION, val.getaQICategoryThreshold().getaQICategoryDescription());

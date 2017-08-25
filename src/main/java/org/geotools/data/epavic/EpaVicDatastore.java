@@ -36,11 +36,14 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.geotools.data.Query;
+import org.geotools.data.epavic.schema.Sites;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.NameImpl;
 import org.opengis.feature.type.Name;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Main class of the EPA VIC data store
@@ -51,34 +54,12 @@ import org.opengis.feature.type.Name;
  */
 public class EpaVicDatastore extends ContentDataStore {
 
-  // API version supported
-  public static final double MINIMUM_API_VERSION = 10.41;
+  private static final String SITES_ENDPOINT = "Sites";
 
-  // Common parameters used in the API
-  public static final String GEOMETRYTYPE_PARAM = "geometryType";
+  private static final String MEASUREMENTS_ENDPOINT = "Measurements";
 
-  public static final String GEOMETRY_PARAM = "geometry";
-
-  public static final String COUNT_PARAM = "returnCountOnly";
-
-  public static final String FORMAT_PARAM = "f";
-
-  public static final String WITHGEOMETRY_PARAM = "returnGeometry";
-
-  // Parameter values
-  public static final String FORMAT_JSON = "json";
-
-  public static final String CAPABILITIES_QUERY = "Query";
-
-  // Request parameters
-  protected static final int REQUEST_THREADS = 5;
-
-  protected static final int REQUEST_TIMEOUT = 60;
-
-  // Cache of feature sources
   protected Map<Name, EpaVicFeatureSource> featureSources = new HashMap<>();
 
-  // Default feature type geometry attribute
   public static final String GEOMETRY_ATTR = "geometry";
 
   public static final String MEASUREMENT = "measurement";
@@ -86,6 +67,8 @@ public class EpaVicDatastore extends ContentDataStore {
   protected URL namespace;
 
   protected URL apiUrl;
+
+  protected URL sitesUrl;
 
   public static final String EPACRS = "EPSG:4283";
 
@@ -100,7 +83,8 @@ public class EpaVicDatastore extends ContentDataStore {
       throw (e);
     }
     try {
-      this.apiUrl = new URL(apiEndpoint);
+      this.apiUrl = new URL(apiEndpoint + "/" + MEASUREMENTS_ENDPOINT);
+      this.sitesUrl = new URL(apiEndpoint + "/" + SITES_ENDPOINT);
     } catch (MalformedURLException e) {
       LOGGER.log(Level.SEVERE, "URL \"" + apiEndpoint + "\" is not properly formatted", e);
       throw (e);
@@ -140,24 +124,49 @@ public class EpaVicDatastore extends ContentDataStore {
   }
 
   /**
+   * Retrieves JSON from the default API URL
+   * 
+   * @return A stream representing the JSON, null
+   * 
+   * @throws IOException
+   */
+  public Sites retrieveSitesJSON() throws IOException {
+    ObjectMapper om = new ObjectMapper();
+    return om.readValue(this.retrieveJSON(null, sitesUrl.toString()), Sites.class);
+  }
+
+  /**
+   * Retrieves JSON from the default API URL
+   * 
+   * @param params
+   *          query parameters
+   * @return A stream representing the JSON, null
+   * 
+   * @throws IOException
+   */
+  public InputStream retrieveJSON(Map<String, String> params) throws IOException {
+    return this.retrieveJSON(params, apiUrl.toString());
+  }
+
+  /**
    * Helper method returning a JSON String out of a resource belongining to a ArcGIS ReST API instance (via a GET). If
    * present, it sends authorixzation.
    * 
    * @param params
    *          Request parameters
-   * 
-   * @return A string representing the JSON, null
+   * @param url
+   *          web service URL
+   * @return A stream representing the JSON, null
    * @throws IOException
-   * @throws InterruptedException
    */
-  public InputStream retrieveJSON(Map<String, String> params) throws IOException {
+  public InputStream retrieveJSON(Map<String, String> params, String url) throws IOException {
 
     HttpClient client = new HttpClient();
 
     // Sets the URI, request parameters and request body (depending on method
     // type)
     GetMethod method = new GetMethod();
-    URI uri = new URI(apiUrl.toString(), false);
+    URI uri = new URI(url, false);
 
     if (params != null) {
       NameValuePair[] kvps = new NameValuePair[params.size()];
