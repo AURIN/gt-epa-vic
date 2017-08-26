@@ -16,10 +16,12 @@
  */
 package org.geotools.data.epavic;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.httpclient.NameValuePair;
 import org.geotools.feature.NameImpl;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
@@ -27,67 +29,73 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
+import org.opengis.geometry.Envelope;
 
 public class EpaVicFeatureSourceTest {
 
   SimpleFeatureType fType;
-
   EpaVicDatastore dataStore;
-
   EpaVicFeatureSource fSource;
 
   @Before
   public void setUp() throws Exception {
-    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+        .createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
 
-    this.fSource = (EpaVicFeatureSource) this.dataStore.createFeatureSource(
-        this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, EpaVicDataStoreTest.TYPENAME1)));
+    this.fSource = (EpaVicFeatureSource) this.dataStore
+        .createFeatureSource(this.dataStore
+            .getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE,
+                EpaVicDataStoreTest.TYPENAME1)));
   }
 
-  // @Test(expected = CQLException.class)
-  @Test
+  @Test(expected = CQLException.class)
   public void incompleteQueryExpression() throws CQLException {
-    ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431)");
+    fSource.composeRequestParameters(ECQL.toFilter(
+        "BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431)"));
   }
 
-  // @Test(expected = CQLException.class)
-  @Test
-  public void misnamedAttributeQueryExpression() throws CQLException {
-    ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431)"
-        + "AND XxxxMonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND fromDate='2009020706' AND toDate='2009020723'");
-  }
-
-  // @Test(expected = CQLException.class)
-  @Test
+  @Test(expected = CQLException.class)
   public void nonExistingAttributeQueryExpression() throws CQLException {
-    ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431)"
-        + "AND Xxxx='1' AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
-        + "AND fromDate='2009020706' AND toDate='2009020723'");
+    fSource.composeRequestParameters(ECQL.toFilter(
+        "BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431)"
+            + "AND Xxxx='1' AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
+            + "AND fromDate='2009020706' AND toDate='2009020723'"));
   }
 
-  // @Test(expected = CQLException.class)
-  @Test
+  @Test(expected = CQLException.class)
   public void orQueryExpression() throws CQLException {
-    ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
-        + "OR MonitorId='PM10' OR TimeBasisId='24HR_RAV' " + "OR fromDate='2009020706' OR toDate='2009020723'");
+    fSource.composeRequestParameters(ECQL.toFilter(
+        "BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
+            + "OR MonitorId='PM10' OR TimeBasisId='24HR_RAV' "
+            + "OR fromDate='2009020706' OR toDate='2009020723'"));
   }
 
-  // @Test(expected = CQLException.class)
-  @Test
+  @Test(expected = CQLException.class)
   public void nonEqualityQueryExpression() throws CQLException {
-    ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
-        + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND fromDate<>'2009020706' AND toDate<>'2009020723'");
+    fSource.composeRequestParameters(ECQL.toFilter(
+        "BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
+            + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
+            + "AND fromDate<>'2009020706' AND toDate<>'2009020723'"));
   }
 
   @Test
-  public void completeQueryExpression() throws CQLException {
+  public void completeQueryExpression() throws CQLException, IOException {
 
-    Filter filter = ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
-        + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND fromDate='2009020706' AND toDate='2009020723'");
-
-    Map<String, String> params = fSource.composeRequestParameters(filter);
-    assertEquals(4, params.size());
+    Map<String, Object> params = fSource.composeRequestParameters(ECQL.toFilter(
+        "BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
+            + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
+            + "AND fromDate='2009020706' AND toDate='2009020723'"));
+    Envelope env = (Envelope) params.get(EpaVicFeatureSource.BBOXPARAM);
+    assertEquals(5, params.size());
+    assertEquals(144.79309207663,
+        env.getLowerCorner().getDirectPosition().getOrdinate(0), 0.01);
+    assertEquals(-37.790887782994,
+        env.getLowerCorner().getDirectPosition().getOrdinate(1), 0.01);
+    assertEquals(144.82828265916,
+        env.getUpperCorner().getDirectPosition().getOrdinate(0), 0.01);
+    assertEquals(-37.7661349284311,
+        env.getUpperCorner().getDirectPosition().getOrdinate(1), 0.01);
     assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
     assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
     assertEquals("2009020706", params.get(EpaVicFeatureSource.FROMDATE));
@@ -97,11 +105,11 @@ public class EpaVicFeatureSourceTest {
   @Test
   public void mixedCaseCompleteQueryExpression() throws CQLException {
 
-    Filter filter = ECQL.toFilter("BBOX(ShaPe, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
-        + "AND MoNiToRId='PM10' AND TiMeBaSiSId='24HR_RAV' " + "AND fRoMDate='2009020706' AND toDaTe='2009020723'");
-
-    Map<String, String> params = fSource.composeRequestParameters(filter);
-    assertEquals(4, params.size());
+    Map<String, Object> params = fSource.composeRequestParameters(ECQL.toFilter(
+        "BBOX(ShaPe, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
+            + "AND MoNiToRId='PM10' AND TiMeBaSiSId='24HR_RAV' "
+            + "AND fRoMDate='2009020706' AND toDaTe='2009020723'"));
+    assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS, params.size());
     assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
     assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
     assertEquals("2009020706", params.get(EpaVicFeatureSource.FROMDATE));

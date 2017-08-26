@@ -47,6 +47,7 @@ import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.visitor.DefaultFilterVisitor;
+import org.geotools.gce.imagemosaic.Utils.BBOXFilterExtractor;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
@@ -55,7 +56,9 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.And;
 import org.opengis.filter.Filter;
+import org.opengis.filter.Or;
 import org.opengis.filter.PropertyIsEqualTo;
+import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 
@@ -83,6 +86,10 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
   public static String TODATE = "ToDate";
 
+  public static String BBOXPARAM = "BBOX";
+
+  public static int FILTERREQUIREDPARAMS = 5;
+
   protected EpaVicDatastore dataStore;
 
   protected DefaultResourceInfo resInfo;
@@ -90,7 +97,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   protected String objectIdField;
 
   /**
-   * Inner class used to build the request parameters. Only "And" logical connectors with equality can be used
+   * Inner class used to build the request parameters. Only "And" logical
+   * connectors with equality can be used
    * 
    * @author lmorandini
    *
@@ -112,11 +120,14 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       return map;
     }
 
+    public Object visit(Or expr, Object data) {
+      return (Map<String, String>) data;
+    }
+
     public Object visit(PropertyIsEqualTo expr, Object data) {
       Map<String, String> map = (Map<String, String>) data;
-      System.out.println(">>>> EXPR: " + expr.getExpression1().toString() + " " + expr.getExpression2().toString());
-      ; // XXX
-      map.put(expr.getExpression1().toString(), expr.getExpression2().toString());
+      map.put(expr.getExpression1().toString(),
+          expr.getExpression2().toString());
       return map;
     }
 
@@ -239,7 +250,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   private Queue<InputStream> loadSiteStreams(Query query) throws CQLException, IOException {
-    Map<String, String> params = composeRequestParameters(query.getFilter());
+    Map<String, Object> params = composeRequestParameters(query.getFilter());
     ReferencedEnvelope bbox = getBBox(query.getFilter());
 
     List<Site> sitesToRetrieve = Collections.emptyList();
@@ -254,7 +265,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       siteStreams.add(this.dataStore.retrieveJSON(params));
     } else {
       for (Site s : sitesToRetrieve) {
-        Map<String, String> p = new HashMap<>(params);
+        Map<String, Object> p = new HashMap<>(params);
         p.put(SITEID, s.getSiteId().toString());
         siteStreams.add(this.dataStore.retrieveJSON(params));
       }
@@ -313,30 +324,37 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
    *          ECQL Filter
    * @return Map of parameters and values
    */
-  public Map<String, String> composeRequestParameters(Filter filter) throws CQLException {
+  public Map<String, Object> composeRequestParameters(Filter filter)
+      throws CQLException {
 
-    Map<String, String> requestParams = null;
+    Map<String, Object> requestParams = null;
+    BBOXFilterExtractor bboxExtractor = (new BBOXFilterExtractor());
 
     try {
-      requestParams = (Map<String, String>) filter.accept(new EpaVicFeatureSource.VisitFilter(),
-          new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
+      requestParams = (Map<String, Object>) filter.accept(
+          new EpaVicFeatureSource.VisitFilter(),
+          new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER));
+      filter.accept(bboxExtractor, null);
+      requestParams.put(BBOXPARAM, (BoundingBox) bboxExtractor.getBBox());
     } catch (Exception e) {
-      CQLException ce = new CQLException(
-          "The " + filter.toString() + " CQL expression is incorrect: " + e.getMessage());
+      CQLException ce = new CQLException("The " + filter.toString()
+          + " CQL expression is incorrect: " + e.getMessage());
       ce.setStackTrace(e.getStackTrace());
       throw ce;
     }
 
-    if (requestParams.isEmpty()) {
-      return Collections.emptyMap();
-    }
-
-    if (requestParams.size() != 4 || !requestParams.containsKey(MONITORID) || !requestParams.containsKey(TIMEBASISID)
-        || !requestParams.containsKey(FROMDATE) || !requestParams.containsKey(TODATE)) {
-      throw new CQLException("The " + filter.toString() + " CQL expression is incorrect: it has to have "
-          + "MonitorID, TimeBasisID, FromDate and ToDate euqaility expression tied by 'And' logical predicate.");
+    if (requestParams.size() != FILTERREQUIREDPARAMS
+        || !requestParams.containsKey(BBOXPARAM)
+        || !requestParams.containsKey(MONITORID)
+        || !requestParams.containsKey(TIMEBASISID)
+        || !requestParams.containsKey(FROMDATE)
+        || !requestParams.containsKey(TODATE)) {
+      throw new CQLException("The " + filter.toString()
+          + " CQL expression is incorrect: it has to have "
+          + "BBOX,MonitorID, TimeBasisID, FromDate and ToDate equaility expression tied by 'And' logical predicate.");
     }
 
     return requestParams;
   }
+
 }

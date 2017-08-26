@@ -45,6 +45,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-imagemosaic</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>

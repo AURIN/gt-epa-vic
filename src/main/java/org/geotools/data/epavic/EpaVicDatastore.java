@@ -144,7 +144,7 @@ public class EpaVicDatastore extends ContentDataStore {
    * 
    * @throws IOException
    */
-  public InputStream retrieveJSON(Map<String, String> params) throws IOException {
+  public InputStream retrieveJSON(Map<String, Object> params) throws IOException {
     return this.retrieveJSON(params, apiUrl.toString());
   }
 
@@ -159,7 +159,7 @@ public class EpaVicDatastore extends ContentDataStore {
    * @return A stream representing the JSON, null
    * @throws IOException
    */
-  public InputStream retrieveJSON(Map<String, String> params, String url) throws IOException {
+  public InputStream retrieveJSON(Map<String, Object> params, String url) throws IOException {
 
     HttpClient client = new HttpClient();
 
@@ -171,7 +171,7 @@ public class EpaVicDatastore extends ContentDataStore {
     if (params != null) {
       NameValuePair[] kvps = new NameValuePair[params.size()];
       int i = 0;
-      for (Entry<String, String> entry : params.entrySet()) {
+      for (Entry<String, Object> entry : params.entrySet()) {
         kvps[i++] = new NameValuePair(entry.getKey(), entry.getValue().toString());
       }
       method.setQueryString(kvps);

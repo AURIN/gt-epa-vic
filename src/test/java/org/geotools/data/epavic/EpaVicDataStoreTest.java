@@ -48,9 +48,11 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
+import org.opengis.geometry.Envelope;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.opengis.geometry.Envelope;
 
 import com.vividsolutions.jts.geom.Point;
 
@@ -229,7 +231,7 @@ public class EpaVicDataStoreTest {
     check[1] = new NameValuePair(EpaVicFeatureSource.MONITORID, "PM10");
     check[2] = new NameValuePair(EpaVicFeatureSource.TIMEBASISID, "24HR_RAV");
     check[3] = new NameValuePair(EpaVicFeatureSource.TODATE, "2009020723");
-
+    
     ArgumentCaptor<NameValuePair[]> captor = ArgumentCaptor.forClass(NameValuePair[].class);
     verify(getMock).setQueryString(captor.capture());
     NameValuePair[] getMethodCalled = captor.getValue();
