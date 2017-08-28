@@ -22,8 +22,6 @@ public class Measurement {
 
   public static final String TIME_BASE_ID = "TimeBaseId";
 
-  public static final String SITE_ID = "SiteId";
-
   public static final String QUALITY_STATUS = "QualityStatus";
 
   public static final String MONITOR_TIME_BASIS = "MonitorTimeBasis";
@@ -34,10 +32,6 @@ public class Measurement {
 
   public static final String MONITOR_ID = "MonitorId";
 
-  public static final String LONG = "Longitude";
-
-  public static final String LAT = "Latitude";
-
   public static final String IS_STATION_OFFLINE = "IsStationOffline";
 
   public static final String EQUIPMENT_TYPE = "EquipmentType";
@@ -47,6 +41,16 @@ public class Measurement {
   public static final String DATE_TIME_RECORDED = "DateTimeRecorded";
 
   public static final String AQI_INDEX = "AQIIndex";
+
+  public static final String MONITOR_COMMON_NAME = "MonitorCommonName";
+
+  public static final String MONITOR_EPA_URL = "MonitorEPADescriptionURL";
+
+  public static final String MONITOR_PRESENTATION_PRECISION = "MonitorPresentationPrecision";
+
+  public static final String MONITOR_UNIT_OF_MEASURE = "MonitorUnitOfMeasure";
+
+  public static final String SITE_LIST_NAME = "SiteListName";
 
   @JsonUnwrapped
   private AQICategoryThreshold aQICategoryThreshold = new AQICategoryThreshold();
@@ -60,22 +64,22 @@ public class Measurement {
   @JsonProperty(DATE_TIME_START)
   private String dateTimeStart;
 
-  @JsonProperty(EQUIPMENT_TYPE)
+  @JsonProperty(Monitor.EQUIPMENT_TYPE)
   private EquipmentType equipmentType;
 
   @JsonUnwrapped
   private HealthCategoryThreshold healthCategoryThreshold = new HealthCategoryThreshold();
 
-  @JsonProperty(IS_STATION_OFFLINE)
+  @JsonProperty(Site.IS_STATION_OFFLINE)
   private Boolean isStationOffline;
 
-  @JsonProperty(LAT)
+  @JsonProperty(Site.LAT)
   private Double latitude;
 
-  @JsonProperty(LONG)
+  @JsonProperty(Site.LONG)
   private Double longitude;
 
-  @JsonProperty(MONITOR_ID)
+  @JsonProperty(Monitor.MONITOR_ID)
   private String monitorId;
 
   @JsonProperty(MONITOR_NAME)
@@ -90,7 +94,7 @@ public class Measurement {
   @JsonProperty(QUALITY_STATUS)
   private Integer qualityStatus;
 
-  @JsonProperty(SITE_ID)
+  @JsonProperty(Site.SITE_ID)
   private Integer siteId;
 
   @JsonProperty(TIME_BASE_ID)
@@ -152,22 +156,22 @@ public class Measurement {
     this.isStationOffline = isStationOffline;
   }
 
-  @JsonProperty(LAT)
+  @JsonProperty(Site.LAT)
   public Double getLatitude() {
     return latitude;
   }
 
-  @JsonProperty(LAT)
+  @JsonProperty(Site.LAT)
   public void setLatitude(Double latitude) {
     this.latitude = latitude;
   }
 
-  @JsonProperty(LONG)
+  @JsonProperty(Site.LONG)
   public Double getLongitude() {
     return longitude;
   }
 
-  @JsonProperty(LONG)
+  @JsonProperty(Site.LONG)
   public void setLongitude(Double longitude) {
     this.longitude = longitude;
   }
@@ -240,12 +244,12 @@ public class Measurement {
     this.qualityStatus = qualityStatus;
   }
 
-  @JsonProperty(SITE_ID)
+  @JsonProperty(Site.SITE_ID)
   public Integer getSiteId() {
     return siteId;
   }
 
-  @JsonProperty(SITE_ID)
+  @JsonProperty(Site.SITE_ID)
   public void setSiteId(Integer siteId) {
     this.siteId = siteId;
   }

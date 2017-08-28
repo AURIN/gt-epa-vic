@@ -26,11 +26,16 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
+import org.geotools.data.epavic.schema.MeasurementFields;
+import org.geotools.data.epavic.schema.Monitors;
+import org.geotools.data.epavic.schema.Sites;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.junit.Before;
 import org.junit.Test;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class EpaVicFeatureReaderTest {
@@ -40,6 +45,12 @@ public class EpaVicFeatureReaderTest {
   SimpleFeatureType fType;
 
   String json;
+
+  private ObjectMapper om = new ObjectMapper();
+
+  private Sites sites;
+
+  private Monitors monitors;
 
   @Before
   public void setUp() throws Exception {
@@ -52,12 +63,16 @@ public class EpaVicFeatureReaderTest {
     builder.add("geometry", Geometry.class);
 
     this.fType = builder.buildFeatureType();
+
+    sites = om.readValue(EpaVicDataStoreFactoryTest.readJSONAsString("test-data/sites.json").getBytes(), Sites.class);
+    monitors = om.readValue(EpaVicDataStoreFactoryTest.readJSONAsString("test-data/monitors.json").getBytes(),
+        Monitors.class);
   }
 
   @Test(expected = IOException.class)
   public void emptyInputStreamHasNext() throws Exception {
 
-    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream("".getBytes()));
+    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream("".getBytes()), null, null);
     assertFalse(this.reader.hasNext());
   }
 
@@ -65,7 +80,7 @@ public class EpaVicFeatureReaderTest {
   public void noFeaturesHasNext() throws Exception {
 
     this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noFeatures.json");
-    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()));
+    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()), null, null);
 
     assertFalse(this.reader.hasNext());
   }
@@ -74,9 +89,25 @@ public class EpaVicFeatureReaderTest {
   public void noFeaturesNext() throws Exception {
 
     this.json = EpaVicDataStoreFactoryTest.readJSONAsString("test-data/noFeatures.json");
-    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()));
+    this.reader = new EpaVicFeatureReader(this.fType, new ByteArrayInputStream(json.getBytes()), null, null);
 
     this.reader.next();
+  }
+
+  @Test
+  public void readFirstFeature() throws Exception {
+
+    ByteArrayInputStream nine = new ByteArrayInputStream(
+        EpaVicDataStoreFactoryTest.readJSONAsString("test-data/9measurements.json").getBytes());
+
+    this.reader = new EpaVicFeatureReader(EpaVicFeatureSource.buildType(), nine, sites, monitors);
+
+    if (reader.hasNext()) {
+      SimpleFeature f = reader.next();
+      for (MeasurementFields field : MeasurementFields.values()) {
+        f.getAttribute(field.getFieldName());
+      }
+    }
   }
 
   @Test
@@ -85,7 +116,7 @@ public class EpaVicFeatureReaderTest {
     ByteArrayInputStream nine = new ByteArrayInputStream(
         EpaVicDataStoreFactoryTest.readJSONAsString("test-data/9measurements.json").getBytes());
 
-    this.reader = new EpaVicFeatureReader(EpaVicFeatureSource.buildType(), nine);
+    this.reader = new EpaVicFeatureReader(EpaVicFeatureSource.buildType(), nine, sites, monitors);
 
     int c = 0;
     while (reader.hasNext()) {
@@ -105,7 +136,7 @@ public class EpaVicFeatureReaderTest {
     l.add(new ByteArrayInputStream(
         EpaVicDataStoreFactoryTest.readJSONAsString("test-data/17measurements.json").getBytes()));
 
-    this.reader = new EpaVicFeatureReader(EpaVicFeatureSource.buildType(), l);
+    this.reader = new EpaVicFeatureReader(EpaVicFeatureSource.buildType(), l, sites, monitors);
 
     int c = 0;
     while (reader.hasNext()) {

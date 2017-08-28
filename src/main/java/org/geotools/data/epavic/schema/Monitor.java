@@ -3,104 +3,120 @@ package org.geotools.data.epavic.schema;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "CommonName", "EPADescriptionURL", "EquipmentType", "MonitorId", "PresentationPrecision",
-    "ShortName", "SiteId", "UnitOfMeasure" })
+@JsonPropertyOrder({ Monitor.COMMON_NAME, Monitor.EPA_DESCRIPTION_URL, Monitor.EQUIPMENT_TYPE, Monitor.MONITOR_ID, Monitor.PRESENTATION_PRECISION,
+    Monitor.SHORT_NAME, "SiteId", Monitor.UNIT_OF_MEASURE })
 public class Monitor {
 
-  @JsonProperty("CommonName")
+  public static final String UNIT_OF_MEASURE = "UnitOfMeasure";
+
+  public static final String SHORT_NAME = "ShortName";
+
+  public static final String PRESENTATION_PRECISION = "PresentationPrecision";
+
+  public static final String MONITOR_ID = "MonitorId";
+
+  public static final String EQUIPMENT_TYPE = "EquipmentType";
+
+  public static final String EPA_DESCRIPTION_URL = "EPADescriptionURL";
+
+  public static final String COMMON_NAME = "CommonName";
+
+  @JsonProperty(COMMON_NAME)
   private String commonName;
 
-  @JsonProperty("EPADescriptionURL")
+  @JsonProperty(EPA_DESCRIPTION_URL)
   private String ePADescriptionURL;
 
-  @JsonProperty("EquipmentType")
+  @JsonProperty(EQUIPMENT_TYPE)
   private EquipmentType equipmentType;
 
-  @JsonProperty("MonitorId")
+  @JsonProperty(MONITOR_ID)
   private String monitorId;
 
-  @JsonProperty("PresentationPrecision")
+  @JsonProperty(PRESENTATION_PRECISION)
   private Integer presentationPrecision;
 
-  @JsonProperty("ShortName")
+  @JsonProperty(SHORT_NAME)
   private String shortName;
 
-  @JsonProperty("SiteId")
+  @JsonProperty(Site.SITE_ID)
   private Integer siteId;
 
-  @JsonProperty("UnitOfMeasure")
+  @JsonProperty(UNIT_OF_MEASURE)
   private String unitOfMeasure;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-  @JsonProperty("CommonName")
+  @JsonProperty(COMMON_NAME)
   public String getCommonName() {
     return commonName;
   }
 
-  @JsonProperty("CommonName")
+  @JsonProperty(COMMON_NAME)
   public void setCommonName(String commonName) {
     this.commonName = commonName;
   }
 
-  @JsonProperty("EPADescriptionURL")
+  @JsonProperty(EPA_DESCRIPTION_URL)
   public String getEPADescriptionURL() {
     return ePADescriptionURL;
   }
 
-  @JsonProperty("EPADescriptionURL")
+  @JsonProperty(EPA_DESCRIPTION_URL)
   public void setEPADescriptionURL(String ePADescriptionURL) {
     this.ePADescriptionURL = ePADescriptionURL;
   }
 
-  @JsonProperty("EquipmentType")
+  @JsonProperty(EQUIPMENT_TYPE)
   public EquipmentType getEquipmentType() {
     return equipmentType;
   }
 
-  @JsonProperty("EquipmentType")
+  @JsonProperty(EQUIPMENT_TYPE)
   public void setEquipmentType(EquipmentType equipmentType) {
     this.equipmentType = equipmentType;
   }
 
-  @JsonProperty("MonitorId")
+  @JsonProperty(MONITOR_ID)
   public String getMonitorId() {
     return monitorId;
   }
 
-  @JsonProperty("MonitorId")
+  @JsonProperty(MONITOR_ID)
   public void setMonitorId(String monitorId) {
     this.monitorId = monitorId;
   }
 
-  @JsonProperty("PresentationPrecision")
+  @JsonProperty(PRESENTATION_PRECISION)
   public Integer getPresentationPrecision() {
     return presentationPrecision;
   }
 
-  @JsonProperty("PresentationPrecision")
+  @JsonProperty(PRESENTATION_PRECISION)
   public void setPresentationPrecision(Integer presentationPrecision) {
     this.presentationPrecision = presentationPrecision;
   }
 
-  @JsonProperty("ShortName")
+  @JsonProperty(SHORT_NAME)
   public String getShortName() {
     return shortName;
   }
 
-  @JsonProperty("ShortName")
+  @JsonProperty(SHORT_NAME)
   public void setShortName(String shortName) {
     this.shortName = shortName;
   }
@@ -115,12 +131,12 @@ public class Monitor {
     this.siteId = siteId;
   }
 
-  @JsonProperty("UnitOfMeasure")
+  @JsonProperty(UNIT_OF_MEASURE)
   public String getUnitOfMeasure() {
     return unitOfMeasure;
   }
 
-  @JsonProperty("UnitOfMeasure")
+  @JsonProperty(UNIT_OF_MEASURE)
   public void setUnitOfMeasure(String unitOfMeasure) {
     this.unitOfMeasure = unitOfMeasure;
   }

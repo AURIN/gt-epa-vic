@@ -31,7 +31,6 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
 import org.geotools.feature.FeatureCollection;
@@ -47,12 +46,9 @@ import org.mockito.ArgumentCaptor;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.Name;
-import org.opengis.filter.Filter;
-import org.opengis.geometry.Envelope;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.opengis.geometry.Envelope;
 
 import com.vividsolutions.jts.geom.Point;
 
@@ -68,8 +64,12 @@ public class EpaVicDataStoreTest {
 
   private GetMethod getMock;
 
+  private Query q;
+
   @Before
   public void setUp() throws Exception {
+    q = new Query("measurement", ECQL.toFilter(
+        "MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND FromDate='2009020706' AND ToDate='2009020723'"));
   }
 
   @After
@@ -122,7 +122,7 @@ public class EpaVicDataStoreTest {
     PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
     List<Name> names = this.dataStore.createTypeNames();
@@ -144,6 +144,7 @@ public class EpaVicDataStoreTest {
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
         .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
         .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
@@ -158,7 +159,7 @@ public class EpaVicDataStoreTest {
     assertEquals(CRS.decode("EPSG:4283"), src.getInfo().getCRS());
 
     // Feature count test
-    assertEquals(9, src.getCount(new Query()));
+    assertEquals(9, src.getCount(q));
   }
 
   @Test
@@ -171,7 +172,9 @@ public class EpaVicDataStoreTest {
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
         .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/monitors.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
@@ -181,11 +184,11 @@ public class EpaVicDataStoreTest {
     src.getSchema();
 
     // Test feature iteration
-    FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(new Query());
+    FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(q);
     FeatureIterator iter = fc.features();
 
     assertEquals(CRS.decode("EPSG:4283"), fc.getSchema().getCoordinateReferenceSystem());
-    assertEquals(true, iter.hasNext());
+    assertTrue(iter.hasNext());
     SimpleFeature sf = (SimpleFeature) iter.next();
     Point p = (Point) sf.getDefaultGeometry();
     assertEquals(145.0306, p.getX(), 0.001);
@@ -207,7 +210,9 @@ public class EpaVicDataStoreTest {
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
         .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/monitors.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
 
     this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
@@ -216,11 +221,8 @@ public class EpaVicDataStoreTest {
         .createFeatureSource(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
     src.getSchema();
 
-    Filter filter = ECQL.toFilter("BBOX(SHAPE, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
-        + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND FromDate='2009020706' AND ToDate='2009020723'");
-
     // Test feature iteration
-    FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(new Query("measurement", filter));
+    FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(q);
     FeatureIterator iter = fc.features();
     if (iter.hasNext()) {
       iter.next();
@@ -231,7 +233,7 @@ public class EpaVicDataStoreTest {
     check[1] = new NameValuePair(EpaVicFeatureSource.MONITORID, "PM10");
     check[2] = new NameValuePair(EpaVicFeatureSource.TIMEBASISID, "24HR_RAV");
     check[3] = new NameValuePair(EpaVicFeatureSource.TODATE, "2009020723");
-    
+
     ArgumentCaptor<NameValuePair[]> captor = ArgumentCaptor.forClass(NameValuePair[].class);
     verify(getMock).setQueryString(captor.capture());
     NameValuePair[] getMethodCalled = captor.getValue();

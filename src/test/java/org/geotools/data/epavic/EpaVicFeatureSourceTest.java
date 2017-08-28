@@ -16,19 +16,17 @@
  */
 package org.geotools.data.epavic;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.commons.httpclient.NameValuePair;
 import org.geotools.feature.NameImpl;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.junit.Before;
 import org.junit.Test;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 
 public class EpaVicFeatureSourceTest {

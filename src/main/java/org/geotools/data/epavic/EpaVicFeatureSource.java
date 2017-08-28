@@ -42,6 +42,7 @@ import org.geotools.data.FeatureReader;
 import org.geotools.data.Query;
 import org.geotools.data.ResourceInfo;
 import org.geotools.data.epavic.schema.MeasurementFields;
+import org.geotools.data.epavic.schema.Monitors;
 import org.geotools.data.epavic.schema.Site;
 import org.geotools.data.epavic.schema.Sites;
 import org.geotools.data.store.ContentDataStore;
@@ -237,7 +238,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   protected int getCountInternal(Query query) throws IOException {
 
     try {
-      Queue<InputStream> siteStreams = loadSiteStreams(query);
+      Queue<InputStream> siteStreams = loadSiteStreams(query,
+          dataStore.retrieveSitesJSON());
 
       int totalMeasurements = 0;
       for (InputStream inputStream : siteStreams) {
@@ -263,24 +265,27 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       Query query) throws IOException {
 
     try {
-      Queue<InputStream> siteStreams = loadSiteStreams(query);
+
+      Sites sites = dataStore.retrieveSitesJSON();
+      Monitors monitors = dataStore.retrieveMonitorsJSON();
+
+      Queue<InputStream> siteStreams = loadSiteStreams(query, sites);
 
       // Returns a reader for the result
-      return new EpaVicFeatureReader(this.schema, siteStreams);
+      return new EpaVicFeatureReader(this.schema, siteStreams, sites, monitors);
 
     } catch (CQLException e) {
       throw new IOException(e);
     }
   }
 
-  private Queue<InputStream> loadSiteStreams(Query query)
+  private Queue<InputStream> loadSiteStreams(Query query, Sites sites)
       throws CQLException, IOException {
     Map<String, Object> params = composeRequestParameters(query.getFilter());
     ReferencedEnvelope bbox = getBBox(query.getFilter());
 
     List<Site> sitesToRetrieve = Collections.emptyList();
     if (bbox != null) {
-      Sites sites = this.dataStore.retrieveSitesJSON();
       sitesToRetrieve = sites.getSites().stream()
           .filter(
               site -> bbox.contains(site.getLongitude(), site.getLatitude()))
@@ -410,4 +415,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     return requestParams;
   }
 
+  @Override
+  protected boolean canFilter() {
+    return true;
+  }
 }

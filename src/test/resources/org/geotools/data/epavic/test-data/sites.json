@@ -1,0 +1,501 @@
+{
+    "ServiceName": "Sites",
+    "Version": "2.0.10.0 (2 pm - 3 pm, 29 May 2017)",
+    "Parameters": "MonitoringPurpose: 1010 FromDate:  ToDate: ",
+    "NumberOfSites": 29,
+    "Sites": [
+        {
+            "SiteId": 10001,
+            "Name": "Alphington",
+            "Latitude": -37.77832,
+            "Longitude": 145.0306,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10003,
+            "Name": "Footscray",
+            "Latitude": -37.80477,
+            "Longitude": 144.8727,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "WEST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10005,
+            "Name": "Point Cook",
+            "Latitude": -37.9262,
+            "Longitude": 144.7566,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "WEST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10006,
+            "Name": "Altona North",
+            "Latitude": -37.84455,
+            "Longitude": 144.8629,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "WEST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10007,
+            "Name": "Brighton",
+            "Latitude": -37.91345,
+            "Longitude": 144.998,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10011,
+            "Name": "Traralgon",
+            "Latitude": -38.19428,
+            "Longitude": 146.5315,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "LATROBE V2"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10017,
+            "Name": "Morwell East",
+            "Latitude": -38.22939,
+            "Longitude": 146.4245,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "LATROBE V2"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10022,
+            "Name": "Dandenong",
+            "Latitude": -37.98576,
+            "Longitude": 145.1987,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10042,
+            "Name": "Box.Hill",
+            "Latitude": -37.82864,
+            "Longitude": 145.1324,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10107,
+            "Name": "Geelong South",
+            "Latitude": -38.17345,
+            "Longitude": 144.3703,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "GEELONG"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10136,
+            "Name": "Mooroolbark",
+            "Latitude": -37.77507,
+            "Longitude": 145.3285,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10169,
+            "Name": "Melton",
+            "Latitude": -37.70645,
+            "Longitude": 144.567,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "WEST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10213,
+            "Name": "Brooklyn",
+            "Latitude": -37.82198,
+            "Longitude": 144.8471,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "WEST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10217,
+            "Name": "Morwell South",
+            "Latitude": -38.23949,
+            "Longitude": 146.3873,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "LATROBE V2"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10218,
+            "Name": "Moe",
+            "Latitude": -38.18647,
+            "Longitude": 146.2583,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "LATROBE V2"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10219,
+            "Name": "Churchill",
+            "Latitude": -38.30431,
+            "Longitude": 146.4149,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "LATROBE V2"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10227,
+            "Name": "Macleod",
+            "Latitude": -37.7224,
+            "Longitude": 145.0576,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": " ",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10233,
+            "Name": "Wangaratta",
+            "Latitude": -36.36876,
+            "Longitude": 146.313,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "COVIC"
+            },
+            "IncidentSite": {
+                "EMVUrl": " ",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10239,
+            "Name": "Melbourne CBD",
+            "Latitude": -37.80756,
+            "Longitude": 144.97,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": false,
+            "IncidentType": "Non-incident",
+            "SiteList": {
+                "Name": "EAST"
+            },
+            "IncidentSite": {
+                "EMVUrl": "",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10242,
+            "Name": "Coolaroo Fire 2",
+            "Latitude": -37.67937,
+            "Longitude": 144.9364,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10243,
+            "Name": "Coolaroo Fire 1",
+            "Latitude": -37.66503,
+            "Longitude": 144.9406,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10244,
+            "Name": "Coolaroo Fire 3",
+            "Latitude": -37.66716,
+            "Longitude": 144.944,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10249,
+            "Name": "Coolaroo Fire 4",
+            "Latitude": -37.67155,
+            "Longitude": 144.9454,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10250,
+            "Name": "Coolaroo Fire 6",
+            "Latitude": -37.66873,
+            "Longitude": 144.9537,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10251,
+            "Name": "Coolaroo Fire 5",
+            "Latitude": -37.66696,
+            "Longitude": 144.949,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10252,
+            "Name": "Coolaroo Fire 8",
+            "Latitude": -37.66601,
+            "Longitude": 144.938,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10253,
+            "Name": "Coolaroo Fire 7",
+            "Latitude": -37.66602,
+            "Longitude": 144.9406,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10254,
+            "Name": "Coolaroo Fire 10",
+            "Latitude": -37.66481,
+            "Longitude": 144.9406,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        },
+        {
+            "SiteId": 10255,
+            "Name": "Coolaroo Fire 9",
+            "Latitude": -37.66716,
+            "Longitude": 144.944,
+            "FireHazardCategory": null,
+            "IsStationOffline": false,
+            "HasIncident": true,
+            "IncidentType": "Incident Tier 2",
+            "SiteList": {
+                "Name": "INCIDENT"
+            },
+            "IncidentSite": {
+                "EMVUrl": "http://emergency.vic.gov.au/",
+                "IncidentIcon": null
+            }
+        }
+    ]
+}

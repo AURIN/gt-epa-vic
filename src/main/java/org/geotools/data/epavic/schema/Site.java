@@ -3,150 +3,174 @@ package org.geotools.data.epavic.schema;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "FireHazardCategory", "HasIncident", "IncidentSite", "IncidentType", "IsStationOffline",
-    "Latitude", "Longitude", "Name", "SiteId", "SiteList" })
+@JsonPropertyOrder({ Site.FIRE_HAZARD_CATEGORY, Site.HAS_INCIDENT, Site.INCIDENT_SITE, Site.INCIDENT_TYPE,
+    Site.IS_STATION_OFFLINE, Site.LAT, Site.LONG, Site.NAME, Site.SITE_ID, Site.SITE_LIST })
 public class Site {
 
-  @JsonProperty("FireHazardCategory")
+  public static final String FIRE_HAZARD_CATEGORY = "FireHazardCategory";
+
+  public static final String HAS_INCIDENT = "HasIncident";
+
+  public static final String NAME = "Name";
+
+  public static final String LONG = "Longitude";
+
+  public static final String LAT = "Latitude";
+
+  public static final String IS_STATION_OFFLINE = "IsStationOffline";
+
+  public static final String INCIDENT_TYPE = "IncidentType";
+
+  public static final String INCIDENT_SITE = "IncidentSite";
+
+  public static final String SITE_ID = "SiteId";
+
+  public static final String SITE_LIST = "SiteList";
+
+  @JsonProperty(FIRE_HAZARD_CATEGORY)
   private Integer fireHazardCategory;
 
-  @JsonProperty("HasIncident")
+  @JsonProperty(HAS_INCIDENT)
   private Boolean hasIncident;
 
-  @JsonProperty("IncidentSite")
+  @JsonProperty(INCIDENT_SITE)
   private IncidentSite incidentSite;
 
-  @JsonProperty("IncidentType")
+  @JsonProperty(INCIDENT_TYPE)
   private String incidentType;
 
-  @JsonProperty("IsStationOffline")
+  @JsonProperty(IS_STATION_OFFLINE)
   private Boolean isStationOffline;
 
-  @JsonProperty("Latitude")
+  @JsonProperty(LAT)
   private Double latitude;
 
-  @JsonProperty("Longitude")
+  @JsonProperty(LONG)
   private Double longitude;
 
-  @JsonProperty("Name")
+  @JsonProperty(NAME)
   private String name;
 
-  @JsonProperty("SiteId")
+  @JsonProperty(SITE_ID)
   private Integer siteId;
 
-  @JsonProperty("SiteList")
+  @JsonProperty(SITE_LIST)
+  @JsonUnwrapped(prefix = SITE_LIST)
   private SiteList siteList;
 
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-  @JsonProperty("FireHazardCategory")
+  @JsonProperty(FIRE_HAZARD_CATEGORY)
   public Integer getFireHazardCategory() {
     return fireHazardCategory;
   }
 
-  @JsonProperty("FireHazardCategory")
+  @JsonProperty(FIRE_HAZARD_CATEGORY)
   public void setFireHazardCategory(Integer fireHazardCategory) {
     this.fireHazardCategory = fireHazardCategory;
   }
 
-  @JsonProperty("HasIncident")
+  @JsonProperty(HAS_INCIDENT)
   public Boolean getHasIncident() {
     return hasIncident;
   }
 
-  @JsonProperty("HasIncident")
+  @JsonProperty(HAS_INCIDENT)
   public void setHasIncident(Boolean hasIncident) {
     this.hasIncident = hasIncident;
   }
 
-  @JsonProperty("IncidentSite")
+  @JsonProperty(INCIDENT_SITE)
   public IncidentSite getIncidentSite() {
     return incidentSite;
   }
 
-  @JsonProperty("IncidentSite")
+  @JsonProperty(INCIDENT_SITE)
   public void setIncidentSite(IncidentSite incidentSite) {
     this.incidentSite = incidentSite;
   }
 
-  @JsonProperty("IncidentType")
+  @JsonProperty(INCIDENT_TYPE)
   public String getIncidentType() {
     return incidentType;
   }
 
-  @JsonProperty("IncidentType")
+  @JsonProperty(INCIDENT_TYPE)
   public void setIncidentType(String incidentType) {
     this.incidentType = incidentType;
   }
 
-  @JsonProperty("IsStationOffline")
+  @JsonProperty(IS_STATION_OFFLINE)
   public Boolean getIsStationOffline() {
     return isStationOffline;
   }
 
-  @JsonProperty("IsStationOffline")
+  @JsonProperty(IS_STATION_OFFLINE)
   public void setIsStationOffline(Boolean isStationOffline) {
     this.isStationOffline = isStationOffline;
   }
 
-  @JsonProperty("Latitude")
+  @JsonProperty(LAT)
   public Double getLatitude() {
     return latitude;
   }
 
-  @JsonProperty("Latitude")
+  @JsonProperty(LAT)
   public void setLatitude(Double latitude) {
     this.latitude = latitude;
   }
 
-  @JsonProperty("Longitude")
+  @JsonProperty(LONG)
   public Double getLongitude() {
     return longitude;
   }
 
-  @JsonProperty("Longitude")
+  @JsonProperty(LONG)
   public void setLongitude(Double longitude) {
     this.longitude = longitude;
   }
 
-  @JsonProperty("Name")
+  @JsonProperty(NAME)
   public String getName() {
     return name;
   }
 
-  @JsonProperty("Name")
+  @JsonProperty(NAME)
   public void setName(String name) {
     this.name = name;
   }
 
-  @JsonProperty("SiteId")
+  @JsonProperty(SITE_ID)
   public Integer getSiteId() {
     return siteId;
   }
 
-  @JsonProperty("SiteId")
+  @JsonProperty(SITE_ID)
   public void setSiteId(Integer siteId) {
     this.siteId = siteId;
   }
 
-  @JsonProperty("SiteList")
+  @JsonProperty(SITE_LIST)
   public SiteList getSiteList() {
     return siteList;
   }
 
-  @JsonProperty("SiteList")
+  @JsonProperty(SITE_LIST)
   public void setSiteList(SiteList siteList) {
     this.siteList = siteList;
   }

@@ -36,6 +36,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.geotools.data.Query;
+import org.geotools.data.epavic.schema.Monitors;
 import org.geotools.data.epavic.schema.Sites;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
@@ -58,6 +59,8 @@ public class EpaVicDatastore extends ContentDataStore {
 
   private static final String MEASUREMENTS_ENDPOINT = "Measurements";
 
+  private static final String MONITORS_ENDPOINT = "Monitors";
+
   protected Map<Name, EpaVicFeatureSource> featureSources = new HashMap<>();
 
   public static final String GEOMETRY_ATTR = "geometry";
@@ -69,6 +72,8 @@ public class EpaVicDatastore extends ContentDataStore {
   protected URL apiUrl;
 
   protected URL sitesUrl;
+
+  protected URL monitorsUrl;
 
   public static final String EPACRS = "EPSG:4283";
 
@@ -85,6 +90,7 @@ public class EpaVicDatastore extends ContentDataStore {
     try {
       this.apiUrl = new URL(apiEndpoint + "/" + MEASUREMENTS_ENDPOINT);
       this.sitesUrl = new URL(apiEndpoint + "/" + SITES_ENDPOINT);
+      this.monitorsUrl = new URL(apiEndpoint + "/" + MONITORS_ENDPOINT);
     } catch (MalformedURLException e) {
       LOGGER.log(Level.SEVERE, "URL \"" + apiEndpoint + "\" is not properly formatted", e);
       throw (e);
@@ -124,15 +130,27 @@ public class EpaVicDatastore extends ContentDataStore {
   }
 
   /**
-   * Retrieves JSON from the default API URL
+   * Retrieves a list of sites from the sites end-point
    * 
-   * @return A stream representing the JSON, null
+   * @return list of EPA sites
    * 
    * @throws IOException
    */
   public Sites retrieveSitesJSON() throws IOException {
     ObjectMapper om = new ObjectMapper();
     return om.readValue(this.retrieveJSON(null, sitesUrl.toString()), Sites.class);
+  }
+
+  /**
+   * Retrieves a list of monitors from the sites end-point
+   * 
+   * @return list of EPA monitors
+   * 
+   * @throws IOException
+   */
+  public Monitors retrieveMonitorsJSON() throws IOException {
+    ObjectMapper om = new ObjectMapper();
+    return om.readValue(this.retrieveJSON(null, monitorsUrl.toString()), Monitors.class);
   }
 
   /**
