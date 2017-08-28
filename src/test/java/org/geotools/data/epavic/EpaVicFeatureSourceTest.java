@@ -87,7 +87,7 @@ public class EpaVicFeatureSourceTest {
             + "AND MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
             + "AND fromDate='2009020706' AND toDate='2009020723'"));
     Envelope env = (Envelope) params.get(EpaVicFeatureSource.BBOXPARAM);
-    assertEquals(5, params.size());
+    assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS + 1, params.size());
     assertEquals(144.79309207663,
         env.getLowerCorner().getDirectPosition().getOrdinate(0), 0.01);
     assertEquals(-37.790887782994,
@@ -103,13 +103,27 @@ public class EpaVicFeatureSourceTest {
   }
 
   @Test
+  public void completeQueryExpressionNoBBOX() throws CQLException, IOException {
+
+    Map<String, Object> params = fSource.composeRequestParameters(
+        ECQL.toFilter("MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
+            + "AND fromDate='2009020706' AND toDate='2009020723'"));
+    Envelope env = (Envelope) params.get(EpaVicFeatureSource.BBOXPARAM);
+    assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS, params.size());
+    assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
+    assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
+    assertEquals("2009020706", params.get(EpaVicFeatureSource.FROMDATE));
+    assertEquals("2009020723", params.get(EpaVicFeatureSource.TODATE));
+  }
+
+  @Test
   public void mixedCaseCompleteQueryExpression() throws CQLException {
 
     Map<String, Object> params = fSource.composeRequestParameters(ECQL.toFilter(
         "BBOX(ShaPe, 144.79309207663,-37.790887782994,144.82828265916,-37.766134928431) "
             + "AND MoNiToRId='PM10' AND TiMeBaSiSId='24HR_RAV' "
             + "AND fRoMDate='2009020706' AND toDaTe='2009020723'"));
-    assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS, params.size());
+    assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS + 1, params.size());
     assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
     assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
     assertEquals("2009020706", params.get(EpaVicFeatureSource.FROMDATE));

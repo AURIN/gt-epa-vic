@@ -88,7 +88,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
   public static String BBOXPARAM = "BBOX";
 
-  public static int FILTERREQUIREDPARAMS = 5;
+  public static int FILTERREQUIREDPARAMS = 4;
 
   protected EpaVicDatastore dataStore;
 
@@ -139,13 +139,20 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     this.dataStore = (EpaVicDatastore) entry.getDataStore();
   }
 
+  protected String composeErrorMessage(Filter filter) {
+    return "The " + filter.toString()
+        + " CQL expression is incorrect: it has to have "
+        + "MonitorID, TimeBasisID, FromDate and ToDate equality expression tied by 'And' logical predicate.";
+  }
+
   @Override
   protected SimpleFeatureType buildFeatureType() throws IOException {
 
     // Sets the information about the resource
     this.resInfo = new DefaultResourceInfo();
     try {
-      this.resInfo.setSchema(new URI(this.dataStore.getNamespace().toExternalForm()));
+      this.resInfo
+          .setSchema(new URI(this.dataStore.getNamespace().toExternalForm()));
     } catch (URISyntaxException e) {
       // Re-packages the exception to be compatible with method signature
       throw new IOException(e.getMessage(), e.fillInStackTrace());
@@ -167,7 +174,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     return this.schema;
   }
 
-  public static SimpleFeatureType buildType() throws NoSuchAuthorityCodeException, FactoryException {
+  public static SimpleFeatureType buildType()
+      throws NoSuchAuthorityCodeException, FactoryException {
     // Builds the feature type
     SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
     builder.setCRS(CRS.decode(EpaVicDatastore.EPACRS));
@@ -206,7 +214,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   @Override
-  protected ReferencedEnvelope getBoundsInternal(Query arg0) throws IOException {
+  protected ReferencedEnvelope getBoundsInternal(Query arg0)
+      throws IOException {
     return this.getInfo().getBounds();
   }
 
@@ -236,7 +245,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   }
 
   @Override
-  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(Query query) throws IOException {
+  protected FeatureReader<SimpleFeatureType, SimpleFeature> getReaderInternal(
+      Query query) throws IOException {
 
     try {
       Queue<InputStream> siteStreams = loadSiteStreams(query);
@@ -249,14 +259,17 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     }
   }
 
-  private Queue<InputStream> loadSiteStreams(Query query) throws CQLException, IOException {
+  private Queue<InputStream> loadSiteStreams(Query query)
+      throws CQLException, IOException {
     Map<String, Object> params = composeRequestParameters(query.getFilter());
     ReferencedEnvelope bbox = getBBox(query.getFilter());
 
     List<Site> sitesToRetrieve = Collections.emptyList();
     if (bbox != null) {
       Sites sites = this.dataStore.retrieveSitesJSON();
-      sitesToRetrieve = sites.getSites().stream().filter(site -> bbox.contains(site.getLongitude(), site.getLatitude()))
+      sitesToRetrieve = sites.getSites().stream()
+          .filter(
+              site -> bbox.contains(site.getLongitude(), site.getLatitude()))
           .collect(Collectors.toList());
     }
 
@@ -295,12 +308,14 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     joiner.add(this.objectIdField);
 
     if (query.retrieveAllProperties()) {
-      Iterator<AttributeDescriptor> iter = this.schema.getAttributeDescriptors().iterator();
+      Iterator<AttributeDescriptor> iter = this.schema.getAttributeDescriptors()
+          .iterator();
       while (iter.hasNext()) {
         AttributeDescriptor attr = iter.next();
         // Skips ID and geometry field
         if (!attr.getLocalName().equalsIgnoreCase(this.objectIdField)
-            && !attr.getLocalName().equalsIgnoreCase(this.schema.getGeometryDescriptor().getLocalName())) {
+            && !attr.getLocalName().equalsIgnoreCase(
+                this.schema.getGeometryDescriptor().getLocalName())) {
           joiner.add(iter.next().getLocalName());
         }
       }
@@ -308,7 +323,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       for (String attr : query.getPropertyNames()) {
         // Skips ID and geometry field
         if (!attr.equalsIgnoreCase(this.objectIdField)
-            && !attr.equalsIgnoreCase(this.schema.getGeometryDescriptor().getLocalName())) {
+            && !attr.equalsIgnoreCase(
+                this.schema.getGeometryDescriptor().getLocalName())) {
           joiner.add(attr);
         }
       }
@@ -324,6 +340,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
    *          ECQL Filter
    * @return Map of parameters and values
    */
+  @SuppressWarnings("unchecked")
   public Map<String, Object> composeRequestParameters(Filter filter)
       throws CQLException {
 
@@ -335,7 +352,10 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
           new EpaVicFeatureSource.VisitFilter(),
           new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER));
       filter.accept(bboxExtractor, null);
-      requestParams.put(BBOXPARAM, (BoundingBox) bboxExtractor.getBBox());
+      BoundingBox bbox = (BoundingBox) bboxExtractor.getBBox();
+      if (bbox != null) {
+        requestParams.put(BBOXPARAM, bbox);
+      }
     } catch (Exception e) {
       CQLException ce = new CQLException("The " + filter.toString()
           + " CQL expression is incorrect: " + e.getMessage());
@@ -343,15 +363,22 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       throw ce;
     }
 
-    if (requestParams.size() != FILTERREQUIREDPARAMS
-        || !requestParams.containsKey(BBOXPARAM)
-        || !requestParams.containsKey(MONITORID)
-        || !requestParams.containsKey(TIMEBASISID)
-        || !requestParams.containsKey(FROMDATE)
-        || !requestParams.containsKey(TODATE)) {
-      throw new CQLException("The " + filter.toString()
-          + " CQL expression is incorrect: it has to have "
-          + "BBOX,MonitorID, TimeBasisID, FromDate and ToDate equaility expression tied by 'And' logical predicate.");
+    // Checks that all required parameters are present, and that no parameter
+    // other than the allowed ones is present
+    try {
+      requestParams.forEach((k, v) -> {
+        if (!(BBOXPARAM.equalsIgnoreCase(k) || MONITORID.equalsIgnoreCase(k)
+            || TIMEBASISID.equalsIgnoreCase(k) || FROMDATE.equalsIgnoreCase(k)
+            || TODATE.equalsIgnoreCase(k))) {
+          throw new IllegalArgumentException(this.composeErrorMessage(filter));
+        }
+      });
+    } catch (IllegalArgumentException e) {
+      throw new CQLException(this.composeErrorMessage(filter));
+    }
+
+    if (requestParams.size() < FILTERREQUIREDPARAMS) {
+      throw new CQLException(this.composeErrorMessage(filter));
     }
 
     return requestParams;
