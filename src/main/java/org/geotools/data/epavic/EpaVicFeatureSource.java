@@ -22,7 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -90,6 +93,10 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
   public static int FILTERREQUIREDPARAMS = 4;
 
+  public static String AURINTIMEFORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+
+  public static String EPATIMEFORMAT = "yyyyMMdd";
+
   protected EpaVicDatastore dataStore;
 
   protected DefaultResourceInfo resInfo;
@@ -139,10 +146,17 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
     this.dataStore = (EpaVicDatastore) entry.getDataStore();
   }
 
-  protected String composeErrorMessage(Filter filter) {
-    return "The " + filter.toString()
-        + " CQL expression is incorrect: it has to have "
-        + "MonitorID, TimeBasisID, FromDate and ToDate equality expression tied by 'And' logical predicate.";
+  protected static String composeErrorMessage(Filter filter, String msg) {
+    return "The " + filter.toString() + " CQL expression is incorrect: " + msg
+        + ". the CQL has to have"
+        + " MonitorID, TimeBasisID, FromDate and ToDate equality expression tied by 'And' logical predicate."
+        + " Date must be expressed as YYYYMMDD";
+  }
+
+  public static String convertDateFormatBetweenAurinAndEPA(String aurinDate)
+      throws ParseException {
+    return (new SimpleDateFormat(EPATIMEFORMAT))
+        .format((new SimpleDateFormat(AURINTIMEFORMAT)).parse(aurinDate));
   }
 
   @Override
@@ -370,15 +384,27 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
         if (!(BBOXPARAM.equalsIgnoreCase(k) || MONITORID.equalsIgnoreCase(k)
             || TIMEBASISID.equalsIgnoreCase(k) || FROMDATE.equalsIgnoreCase(k)
             || TODATE.equalsIgnoreCase(k))) {
-          throw new IllegalArgumentException(this.composeErrorMessage(filter));
+          throw new IllegalArgumentException();
         }
       });
     } catch (IllegalArgumentException e) {
-      throw new CQLException(this.composeErrorMessage(filter));
+      throw new CQLException(this.composeErrorMessage(filter,
+          "Some of the parameter names provieded are not valid"));
     }
 
     if (requestParams.size() < FILTERREQUIREDPARAMS) {
-      throw new CQLException(this.composeErrorMessage(filter));
+      throw new CQLException(this.composeErrorMessage(filter,
+          "The number of parameters provided is incorrect"));
+    }
+
+    // Converts timestamps from ISO-8601 to the format EPA Vic API accepts
+    try {
+      requestParams.replace(FROMDATE,
+          convertDateFormatBetweenAurinAndEPA((String) requestParams.get(FROMDATE)));
+      requestParams.replace(TODATE,
+          convertDateFormatBetweenAurinAndEPA((String) requestParams.get(TODATE)));
+    } catch (ParseException e) {
+      throw new CQLException(this.composeErrorMessage(filter, e.getMessage()));
     }
 
     return requestParams;
