@@ -18,6 +18,7 @@
 
 package org.geotools.data.epavic;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -77,14 +78,16 @@ public class EpaVicDatastore extends ContentDataStore {
 
   public static final String EPACRS = "EPSG:4283";
 
-  public EpaVicDatastore(String namespaceIn, String apiEndpoint) throws MalformedURLException, IOException {
+  public EpaVicDatastore(String namespaceIn, String apiEndpoint)
+      throws MalformedURLException, IOException {
 
     super();
 
     try {
       this.namespace = new URL(namespaceIn);
     } catch (MalformedURLException e) {
-      LOGGER.log(Level.SEVERE, "Namespace \"" + namespaceIn + "\" is not properly formatted", e);
+      LOGGER.log(Level.SEVERE,
+          "Namespace \"" + namespaceIn + "\" is not properly formatted", e);
       throw (e);
     }
     try {
@@ -92,7 +95,8 @@ public class EpaVicDatastore extends ContentDataStore {
       this.sitesUrl = new URL(apiEndpoint + "/" + SITES_ENDPOINT);
       this.monitorsUrl = new URL(apiEndpoint + "/" + MONITORS_ENDPOINT);
     } catch (MalformedURLException e) {
-      LOGGER.log(Level.SEVERE, "URL \"" + apiEndpoint + "\" is not properly formatted", e);
+      LOGGER.log(Level.SEVERE,
+          "URL \"" + apiEndpoint + "\" is not properly formatted", e);
       throw (e);
     }
   }
@@ -108,9 +112,11 @@ public class EpaVicDatastore extends ContentDataStore {
   }
 
   @Override
-  protected ContentFeatureSource createFeatureSource(ContentEntry entry) throws IOException {
+  protected ContentFeatureSource createFeatureSource(ContentEntry entry)
+      throws IOException {
 
-    EpaVicFeatureSource featureSource = this.featureSources.get(entry.getName());
+    EpaVicFeatureSource featureSource = this.featureSources
+        .get(entry.getName());
     if (featureSource == null) {
       featureSource = new EpaVicFeatureSource(entry, new Query());
       this.featureSources.put(entry.getName(), featureSource);
@@ -138,7 +144,10 @@ public class EpaVicDatastore extends ContentDataStore {
    */
   public Sites retrieveSitesJSON() throws IOException {
     ObjectMapper om = new ObjectMapper();
-    return om.readValue(this.retrieveJSON(null, sitesUrl.toString()), Sites.class);
+    String sitesURL = sitesUrl.toString();
+    return om.readValue(
+        new BufferedInputStream(this.retrieveJSON(null, sitesURL)),
+        Sites.class);
   }
 
   /**
@@ -150,7 +159,9 @@ public class EpaVicDatastore extends ContentDataStore {
    */
   public Monitors retrieveMonitorsJSON() throws IOException {
     ObjectMapper om = new ObjectMapper();
-    return om.readValue(this.retrieveJSON(null, monitorsUrl.toString()), Monitors.class);
+    String monitorsURL = monitorsUrl.toString();
+    LOGGER.fine("Retrieving monitors from " + monitorsURL);
+    return om.readValue(this.retrieveJSON(null, monitorsURL), Monitors.class);
   }
 
   /**
@@ -162,13 +173,14 @@ public class EpaVicDatastore extends ContentDataStore {
    * 
    * @throws IOException
    */
-  public InputStream retrieveJSON(Map<String, Object> params) throws IOException {
+  public InputStream retrieveJSON(Map<String, Object> params)
+      throws IOException {
     return this.retrieveJSON(params, apiUrl.toString());
   }
 
   /**
-   * Helper method returning a JSON String out of a resource belongining to a ArcGIS ReST API instance (via a GET). If
-   * present, it sends authorixzation.
+   * Helper method returning a JSON String out of a resource belongining to a
+   * ArcGIS ReST API instance (via a GET). If present, it sends authorixzation.
    * 
    * @param params
    *          Request parameters
@@ -177,7 +189,8 @@ public class EpaVicDatastore extends ContentDataStore {
    * @return A stream representing the JSON, null
    * @throws IOException
    */
-  public InputStream retrieveJSON(Map<String, Object> params, String url) throws IOException {
+  public InputStream retrieveJSON(Map<String, Object> params, String url)
+      throws IOException {
 
     HttpClient client = new HttpClient();
 
@@ -186,17 +199,19 @@ public class EpaVicDatastore extends ContentDataStore {
     GetMethod method = new GetMethod();
     URI uri = new URI(url, false);
 
-    if (params != null) {
+    if (params != null && !params.isEmpty()) {
       NameValuePair[] kvps = new NameValuePair[params.size()];
       int i = 0;
       for (Entry<String, Object> entry : params.entrySet()) {
-        kvps[i++] = new NameValuePair(entry.getKey(), entry.getValue().toString());
+        kvps[i++] = new NameValuePair(entry.getKey(),
+            entry.getValue().toString());
       }
       method.setQueryString(kvps);
       uri.setQuery(method.getQueryString());
     }
 
-    this.LOGGER.log(Level.FINER, "About to query GET " + apiUrl.toString() + "?" + method.getQueryString());
+    this.LOGGER.log(Level.FINER,
+        "About to query GET " + url.toString() + "?" + method.getQueryString());
     method.setURI(uri);
 
     // Re-tries the request if necessary
@@ -206,8 +221,8 @@ public class EpaVicDatastore extends ContentDataStore {
 
       // If HTTP error, throws an exception
       if (status != HttpStatus.SC_OK) {
-        throw new IOException(
-            "HTTP Status: " + status + " for URL: " + uri + " response: " + method.getResponseBodyAsString());
+        throw new IOException("HTTP Status: " + status + " for URL: " + uri
+            + " response: " + method.getResponseBodyAsString());
       }
 
       // Retrieve the wait period is returned by the server

@@ -14,11 +14,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ Site.FIRE_HAZARD_CATEGORY, Site.HAS_INCIDENT, Site.INCIDENT_SITE, Site.INCIDENT_TYPE,
-    Site.IS_STATION_OFFLINE, Site.LAT, Site.LONG, Site.NAME, Site.SITE_ID, Site.SITE_LIST })
+@JsonPropertyOrder({ Site.FIRE_HAZARD_CATEGORY, Site.HAS_INCIDENT,
+    Site.INCIDENT_SITE, Site.INCIDENT_TYPE, Site.IS_STATION_OFFLINE, Site.LAT,
+    Site.LONG, Site.NAME, Site.SITE_ID, Site.SITE_LIST })
 public class Site {
 
   public static final String FIRE_HAZARD_CATEGORY = "FireHazardCategory";
@@ -69,7 +69,6 @@ public class Site {
   private Integer siteId;
 
   @JsonProperty(SITE_LIST)
-  @JsonUnwrapped(prefix = SITE_LIST)
   private SiteList siteList;
 
   @JsonIgnore
@@ -192,8 +191,9 @@ public class Site {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder().append(fireHazardCategory).append(hasIncident).append(incidentSite)
-        .append(incidentType).append(isStationOffline).append(latitude).append(longitude).append(name).append(siteId)
+    return new HashCodeBuilder().append(fireHazardCategory).append(hasIncident)
+        .append(incidentSite).append(incidentType).append(isStationOffline)
+        .append(latitude).append(longitude).append(name).append(siteId)
         .append(siteList).append(additionalProperties).toHashCode();
   }
 
@@ -206,10 +206,15 @@ public class Site {
       return false;
     }
     Site rhs = ((Site) other);
-    return new EqualsBuilder().append(fireHazardCategory, rhs.fireHazardCategory).append(hasIncident, rhs.hasIncident)
-        .append(incidentSite, rhs.incidentSite).append(incidentType, rhs.incidentType)
-        .append(isStationOffline, rhs.isStationOffline).append(latitude, rhs.latitude).append(longitude, rhs.longitude)
-        .append(name, rhs.name).append(siteId, rhs.siteId).append(siteList, rhs.siteList)
+    return new EqualsBuilder()
+        .append(fireHazardCategory, rhs.fireHazardCategory)
+        .append(hasIncident, rhs.hasIncident)
+        .append(incidentSite, rhs.incidentSite)
+        .append(incidentType, rhs.incidentType)
+        .append(isStationOffline, rhs.isStationOffline)
+        .append(latitude, rhs.latitude).append(longitude, rhs.longitude)
+        .append(name, rhs.name).append(siteId, rhs.siteId)
+        .append(siteList, rhs.siteList)
         .append(additionalProperties, rhs.additionalProperties).isEquals();
   }
 

@@ -56,7 +56,8 @@ import com.vividsolutions.jts.geom.Point;
  * @author William Voorsluys
  *
  */
-public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeature> {
+public class EpaVicFeatureReader
+    implements FeatureReader<SimpleFeatureType, SimpleFeature> {
 
   protected SimpleFeatureType featureType;
 
@@ -74,21 +75,24 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
 
   private Map<String, Monitor> monitors = Collections.emptyMap();;
 
-  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn, InputStream stream, Sites sites, Monitors monitors)
-      throws IOException {
-    this(featureTypeIn, new LinkedList<>(Arrays.asList(stream)), sites, monitors);
+  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn,
+      InputStream stream, Sites sites, Monitors monitors) throws IOException {
+    this(featureTypeIn, new LinkedList<>(Arrays.asList(stream)), sites,
+        monitors);
   }
 
-  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn, Queue<InputStream> siteStreams, Sites sites,
-      Monitors monitors) throws IOException {
+  public EpaVicFeatureReader(SimpleFeatureType featureTypeIn,
+      Queue<InputStream> siteStreams, Sites sites, Monitors monitors)
+      throws IOException {
     this.featureType = featureTypeIn;
     this.siteStreams = siteStreams;
     if (sites != null) {
-      this.sites = sites.getSites().stream().collect(Collectors.toMap(Site::getSiteId, item -> item, (u, v) -> u));
+      this.sites = sites.getSites().stream().collect(
+          Collectors.toMap(Site::getSiteId, item -> item, (u, v) -> u));
     }
     if (monitors != null) {
-      this.monitors = monitors.getMonitors().stream()
-          .collect(Collectors.toMap(Monitor::getMonitorId, item -> item, (u, v) -> u));
+      this.monitors = monitors.getMonitors().stream().collect(
+          Collectors.toMap(Monitor::getMonitorId, item -> item, (u, v) -> u));
     }
     this.featIndex = 0;
 
@@ -123,7 +127,8 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
   @Override
   public SimpleFeatureType getFeatureType() {
     if (this.featureType == null) {
-      throw new IllegalStateException("No features were retrieved, shouldn't be calling getFeatureType()");
+      throw new IllegalStateException(
+          "No features were retrieved, shouldn't be calling getFeatureType()");
     }
     return this.featureType;
   }
@@ -146,7 +151,8 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
   }
 
   private boolean isParserCurrent(JsonParser parser) {
-    return parser.hasCurrentToken() && parser.getCurrentToken() != JsonToken.END_ARRAY
+    return parser.hasCurrentToken()
+        && parser.getCurrentToken() != JsonToken.END_ARRAY
         && parser.getCurrentToken() != JsonToken.END_OBJECT;
   }
 
@@ -156,12 +162,24 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
    */
   @Override
   public SimpleFeature next() throws NoSuchElementException, IOException {
-    if (jParser.hasCurrentToken() && jParser.getCurrentToken() != JsonToken.END_ARRAY
+    if (jParser.hasCurrentToken()
+        && jParser.getCurrentToken() != JsonToken.END_ARRAY
         && jParser.getCurrentToken() != JsonToken.END_OBJECT) {
       Measurement val = jParser.readValueAs(Measurement.class);
 
       Site site = sites.get(val.getSiteId());
+
+      if (site == null) {
+        throw new IllegalStateException(
+            "Site " + val.getSiteId() + " is unavailable");
+      }
+
       Monitor monitor = monitors.get(val.getMonitorId());
+
+      if (monitor == null) {
+        throw new IllegalStateException(
+            "Monitor " + val.getMonitorId() + " is unavailable");
+      }
 
       SimpleFeatureBuilder b = new SimpleFeatureBuilder(getFeatureType());
 
@@ -179,19 +197,24 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
       b.set(Measurement.DATE_TIME_START, val.getValue());
       b.set(Measurement.DATE_TIME_RECORDED, val.getValue());
       b.set(Measurement.AQI_INDEX, val.getValue());
-      b.set(Measurement.EQUIPMENT_TYPE,
-          val.getEquipmentType() == null ? null : val.getEquipmentType().getDescription());
-      b.set(AQICategoryThreshold.AQI_BACKGROUND_COLOUR, val.getaQICategoryThreshold().getaQIBackgroundColour());
-      b.set(AQICategoryThreshold.AQI_CATEGORY_ABBREVIATION, val.getaQICategoryThreshold().getaQICategoryAbbreviation());
-      b.set(AQICategoryThreshold.AQI_CATEGORY_DESCRIPTION, val.getaQICategoryThreshold().getaQICategoryDescription());
-      b.set(AQICategoryThreshold.AQI_FOREGROUND_COLOUR, val.getaQICategoryThreshold().getaQIForegroundColour());
+      b.set(Measurement.EQUIPMENT_TYPE, val.getEquipmentType() == null ? null
+          : val.getEquipmentType().getDescription());
+      b.set(AQICategoryThreshold.AQI_BACKGROUND_COLOUR,
+          val.getaQICategoryThreshold().getaQIBackgroundColour());
+      b.set(AQICategoryThreshold.AQI_CATEGORY_ABBREVIATION,
+          val.getaQICategoryThreshold().getaQICategoryAbbreviation());
+      b.set(AQICategoryThreshold.AQI_CATEGORY_DESCRIPTION,
+          val.getaQICategoryThreshold().getaQICategoryDescription());
+      b.set(AQICategoryThreshold.AQI_FOREGROUND_COLOUR,
+          val.getaQICategoryThreshold().getaQIForegroundColour());
       b.set(HealthCategoryThreshold.HEALTH_CATEGORY_BACKGROUND_COLOUR,
           val.getHealthCategoryThreshold().getHealthCategoryBackgroundColour());
       b.set(HealthCategoryThreshold.HEALTH_CATEGORY_DESCRIPTION,
           val.getHealthCategoryThreshold().getHealthCategoryDescription());
       b.set(HealthCategoryThreshold.HEALTH_CATEGORY_FOREGROUND_COLOUR,
           val.getHealthCategoryThreshold().getHealthCategoryForegroundColour());
-      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_LEVEL, val.getHealthCategoryThreshold().getHealthCategoryLevel());
+      b.set(HealthCategoryThreshold.HEALTH_CATEGORY_LEVEL,
+          val.getHealthCategoryThreshold().getHealthCategoryLevel());
       b.set(HealthCategoryThreshold.HEALTH_CATEGORY_MESSAGE,
           val.getHealthCategoryThreshold().getHealthCategoryMessage());
       b.set(HealthCategoryThreshold.HEALTH_CATEGORY_VALUE_RANGE_TEXT,
@@ -199,17 +222,14 @@ public class EpaVicFeatureReader implements FeatureReader<SimpleFeatureType, Sim
       b.set(HealthCategoryThreshold.HEALTH_CATEGORY_VISIBILITY_TEXT,
           val.getHealthCategoryThreshold().getHealthCategoryVisibilityText());
 
-      if (site != null) {
-        b.set(Measurement.SITE_LIST_NAME, site.getSiteList().getName());
-        b.set(Site.FIRE_HAZARD_CATEGORY, site.getFireHazardCategory());
-      }
+      b.set(Measurement.SITE_LIST_NAME, site.getSiteList().getName());
+      b.set(Site.FIRE_HAZARD_CATEGORY, site.getFireHazardCategory());
 
-      if (monitor != null) {
-        b.set(Measurement.MONITOR_COMMON_NAME, monitor.getCommonName());
-        b.set(Measurement.MONITOR_EPA_URL, monitor.getEPADescriptionURL());
-        b.set(Measurement.MONITOR_PRESENTATION_PRECISION, monitor.getPresentationPrecision());
-        b.set(Measurement.MONITOR_UNIT_OF_MEASURE, monitor.getUnitOfMeasure());
-      }
+      b.set(Measurement.MONITOR_COMMON_NAME, monitor.getCommonName());
+      b.set(Measurement.MONITOR_EPA_URL, monitor.getEPADescriptionURL());
+      b.set(Measurement.MONITOR_PRESENTATION_PRECISION,
+          monitor.getPresentationPrecision());
+      b.set(Measurement.MONITOR_UNIT_OF_MEASURE, monitor.getUnitOfMeasure());
 
       GeometryBuilder builder = new GeometryBuilder();
       Point point = builder.point(val.getLongitude(), val.getLatitude());

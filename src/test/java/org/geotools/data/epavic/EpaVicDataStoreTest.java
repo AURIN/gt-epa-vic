@@ -20,6 +20,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +34,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
+import org.geotools.data.epavic.schema.Sites;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.NameImpl;
@@ -68,8 +70,9 @@ public class EpaVicDataStoreTest {
 
   @Before
   public void setUp() throws Exception {
-    q = new Query("measurement", ECQL.toFilter(
-        "MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND FromDate='2009-02-07T06:00:00' AND ToDate='2009-02-07T23:00:00'"));
+    q = new Query("measurement",
+        ECQL.toFilter("MonitorId='PM10' AND TimeBasisId='24HR_RAV' "
+            + "AND FromDate='2009-02-07T06:00:00' AND ToDate='2009-02-07T23:00:00'"));
   }
 
   @After
@@ -80,13 +83,15 @@ public class EpaVicDataStoreTest {
   public void testHTTPError() throws Exception {
 
     this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock);
     this.getMock = PowerMockito.mock(GetMethod.class);
     PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock);
     when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_NOT_FOUND);
 
     try {
-      this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+      this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+          .createDefaultOpenDataTestDataStore();
       List<Name> names = this.dataStore.createTypeNames();
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("404"));
@@ -98,15 +103,20 @@ public class EpaVicDataStoreTest {
   public void testServiceError() throws Exception {
 
     this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock).thenReturn(clientMock);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock).thenReturn(clientMock);
     this.getMock = PowerMockito.mock(GetMethod.class);
-    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
-    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock)
+        .thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/measurements.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/measurements.json"));
 
     try {
-      this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+      this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+          .createDefaultOpenDataTestDataStore();
       List<Name> names = this.dataStore.createTypeNames();
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("400 Cannot perform query"));
@@ -117,77 +127,103 @@ public class EpaVicDataStoreTest {
   public void testCreateTypeNamesMeasurements() throws Exception {
 
     this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock).thenReturn(clientMock);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock).thenReturn(clientMock);
     this.getMock = PowerMockito.mock(GetMethod.class);
-    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
-    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock)
+        .thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"));
 
-    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+        .createDefaultOpenDataTestDataStore();
     List<Name> names = this.dataStore.createTypeNames();
 
     assertEquals(1, names.size());
     assertEquals(TYPENAME1, names.get(0).getLocalPart());
-    assertEquals(EpaVicDataStoreFactoryTest.NAMESPACE, names.get(0).getNamespaceURI());
+    assertEquals(EpaVicDataStoreFactoryTest.NAMESPACE,
+        names.get(0).getNamespaceURI());
 
-    assertNotNull(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
+    assertNotNull(this.dataStore.getEntry(
+        new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
   }
 
   @Test
   public void testCreateFeatureSourceAndCountFeature() throws Exception {
 
     this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock).thenReturn(clientMock);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock).thenReturn(clientMock);
     this.getMock = PowerMockito.mock(GetMethod.class);
-    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
-    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
-        .thenReturn(HttpStatus.SC_OK);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock)
+        .thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
+        .thenReturn(
+            EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"));
 
-    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+        .createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
 
     FeatureSource<SimpleFeatureType, SimpleFeature> src = this.dataStore
-        .createFeatureSource(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
+        .createFeatureSource(this.dataStore.getEntry(
+            new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
     src.getSchema();
     assertTrue(src instanceof EpaVicFeatureSource);
     assertEquals("measurement", src.getInfo().getName());
-    assertEquals(EpaVicDataStoreFactoryTest.NAMESPACE, src.getInfo().getSchema().toString());
+    assertEquals(EpaVicDataStoreFactoryTest.NAMESPACE,
+        src.getInfo().getSchema().toString());
     assertEquals(CRS.decode("EPSG:4283"), src.getInfo().getCRS());
 
     // Feature count test
-    assertEquals(9, src.getCount(q));
+    assertEquals(18, src.getCount(q));
   }
 
   @Test
   public void testFeatures() throws Exception {
 
     this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock).thenReturn(clientMock);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock).thenReturn(clientMock);
     this.getMock = PowerMockito.mock(GetMethod.class);
-    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
-    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
-        .thenReturn(HttpStatus.SC_OK);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock)
+        .thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/monitors.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
+        .thenReturn(
+            EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/monitors.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"));
 
-    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+        .createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
 
     FeatureSource<SimpleFeatureType, SimpleFeature> src = this.dataStore
-        .createFeatureSource(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
+        .createFeatureSource(this.dataStore.getEntry(
+            new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
     src.getSchema();
 
     // Test feature iteration
     FeatureCollection<SimpleFeatureType, SimpleFeature> fc = src.getFeatures(q);
     FeatureIterator iter = fc.features();
 
-    assertEquals(CRS.decode("EPSG:4283"), fc.getSchema().getCoordinateReferenceSystem());
+    assertEquals(CRS.decode("EPSG:4283"),
+        fc.getSchema().getCoordinateReferenceSystem());
     assertTrue(iter.hasNext());
     SimpleFeature sf = (SimpleFeature) iter.next();
     Point p = (Point) sf.getDefaultGeometry();
@@ -201,24 +237,56 @@ public class EpaVicDataStoreTest {
   }
 
   @Test
+  public void testReadSites() throws Exception {
+
+    this.clientMock = PowerMockito.mock(HttpClient.class);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock).thenReturn(clientMock);
+    this.getMock = PowerMockito.mock(GetMethod.class);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock)
+        .thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
+    when(getMock.getResponseBodyAsStream()).thenReturn(
+        EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"));
+
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+        .createDefaultOpenDataTestDataStore();
+    this.dataStore.createTypeNames();
+
+    Sites sites = this.dataStore.retrieveSitesJSON();
+
+    assertEquals(2, sites.getSites().size());
+  }
+
+  @Test
   public void testFeaturesWithFilter() throws Exception {
 
     this.clientMock = PowerMockito.mock(HttpClient.class);
-    PowerMockito.whenNew(HttpClient.class).withNoArguments().thenReturn(clientMock).thenReturn(clientMock);
+    PowerMockito.whenNew(HttpClient.class).withNoArguments()
+        .thenReturn(clientMock).thenReturn(clientMock);
     this.getMock = PowerMockito.mock(GetMethod.class);
-    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock).thenReturn(getMock);
-    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK)
-        .thenReturn(HttpStatus.SC_OK);
+    PowerMockito.whenNew(GetMethod.class).withNoArguments().thenReturn(getMock)
+        .thenReturn(getMock);
+    when(clientMock.executeMethod(getMock)).thenReturn(HttpStatus.SC_OK)
+        .thenReturn(HttpStatus.SC_OK).thenReturn(HttpStatus.SC_OK);
     when(getMock.getResponseBodyAsStream())
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/monitors.json"))
-        .thenReturn(EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/9measurements.json"));
+        .thenReturn(
+            EpaVicDataStoreFactoryTest.readJSONAsStream("test-data/sites.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/monitors.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"))
+        .thenReturn(EpaVicDataStoreFactoryTest
+            .readJSONAsStream("test-data/9measurements.json"));
 
-    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest.createDefaultOpenDataTestDataStore();
+    this.dataStore = (EpaVicDatastore) EpaVicDataStoreFactoryTest
+        .createDefaultOpenDataTestDataStore();
     this.dataStore.createTypeNames();
 
     FeatureSource<SimpleFeatureType, SimpleFeature> src = this.dataStore
-        .createFeatureSource(this.dataStore.getEntry(new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
+        .createFeatureSource(this.dataStore.getEntry(
+            new NameImpl(EpaVicDataStoreFactoryTest.NAMESPACE, TYPENAME1)));
     src.getSchema();
 
     // Test feature iteration
@@ -234,8 +302,9 @@ public class EpaVicDataStoreTest {
     check[2] = new NameValuePair(EpaVicFeatureSource.TIMEBASISID, "24HR_RAV");
     check[3] = new NameValuePair(EpaVicFeatureSource.TODATE, "2009020723");
 
-    ArgumentCaptor<NameValuePair[]> captor = ArgumentCaptor.forClass(NameValuePair[].class);
-    verify(getMock).setQueryString(captor.capture());
+    ArgumentCaptor<NameValuePair[]> captor = ArgumentCaptor
+        .forClass(NameValuePair[].class);
+    verify(getMock, times(2)).setQueryString(captor.capture());
     NameValuePair[] getMethodCalled = captor.getValue();
     assertArrayEquals(check, getMethodCalled);
 

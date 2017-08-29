@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.geotools.data.Query;
 import org.geotools.data.epavic.schema.MeasurementFields;
+import org.geotools.data.epavic.schema.Sites;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.filter.text.ecql.ECQL;
@@ -63,9 +64,18 @@ public class EpaVicDataStoreIT {
     assertTrue(it.hasNext());
     SimpleFeature feat = it.next();
 
-    Integer attribute = (Integer) feat
-        .getAttribute(MeasurementFields.SITE_ID.getFieldName());
+    String attribute = (String) feat
+        .getAttribute(MeasurementFields.SITE_LIST_NAME.getFieldName());
 
-    assertEquals(10001, attribute.intValue());
+    assertEquals("EAST", attribute);
+  }
+
+  @Test
+  public void testGetSites() throws Exception {
+
+    EpaVicDatastore ds = EpaVicDataStoreFactoryTest
+        .createDefaultEPAServerTestDataStore();
+    Sites sites = ds.retrieveSitesJSON();
+    assertEquals(29, sites.getSites().size());
   }
 }

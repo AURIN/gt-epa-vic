@@ -25,7 +25,6 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -282,7 +281,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
   private Queue<InputStream> loadSiteStreams(Query query, Sites sites)
       throws CQLException, IOException {
     Map<String, Object> params = composeRequestParameters(query.getFilter());
-    ReferencedEnvelope bbox = getBBox(query.getFilter());
+    ReferencedEnvelope bbox = (ReferencedEnvelope) params.get(BBOXPARAM);
 
     List<Site> sitesToRetrieve = Collections.emptyList();
     if (bbox != null) {
@@ -290,6 +289,8 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
           .filter(
               site -> bbox.contains(site.getLongitude(), site.getLatitude()))
           .collect(Collectors.toList());
+    } else {
+      sitesToRetrieve = sites.getSites();
     }
 
     Queue<InputStream> siteStreams = new LinkedList<>();
@@ -303,10 +304,6 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       }
     }
     return siteStreams;
-  }
-
-  private ReferencedEnvelope getBBox(Filter filter) {
-    return null;
   }
 
   /**
@@ -382,6 +379,10 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       throw ce;
     }
 
+    if (requestParams.isEmpty()) {
+      return requestParams;
+    }
+
     // Checks that all required parameters are present, and that no parameter
     // other than the allowed ones is present
     try {
@@ -404,10 +405,10 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
     // Converts timestamps from ISO-8601 to the format EPA Vic API accepts
     try {
-      requestParams.replace(FROMDATE,
-          convertDateFormatBetweenAurinAndEPA((String) requestParams.get(FROMDATE)));
-      requestParams.replace(TODATE,
-          convertDateFormatBetweenAurinAndEPA((String) requestParams.get(TODATE)));
+      requestParams.replace(FROMDATE, convertDateFormatBetweenAurinAndEPA(
+          (String) requestParams.get(FROMDATE)));
+      requestParams.replace(TODATE, convertDateFormatBetweenAurinAndEPA(
+          (String) requestParams.get(TODATE)));
     } catch (ParseException e) {
       throw new CQLException(composeErrorMessage(filter, e.getMessage()));
     }

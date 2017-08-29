@@ -48,7 +48,7 @@ public class EpaVicDataStoreFactoryTest {
 
   private static final Logger LOGGER = Logging.getLogger("org.geotools.data.arcgisrest");
 
-  private static final String URL = "http://sciwebsvc.epa.vic.gov.au/aqapi/measurements";
+  private static final String URL = "http://sciwebsvc.epa.vic.gov.au/aqapi";
 
   public static String NAMESPACE = "http://aurin.org.au";
 
