@@ -69,7 +69,7 @@ public class EpaVicDataStoreTest {
   @Before
   public void setUp() throws Exception {
     q = new Query("measurement", ECQL.toFilter(
-        "MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND FromDate='2009020706' AND ToDate='2009020723'"));
+        "MonitorId='PM10' AND TimeBasisId='24HR_RAV' " + "AND FromDate='2009-02-07T06:00:00' AND ToDate='2009-02-07T23:00:00'"));
   }
 
   @After

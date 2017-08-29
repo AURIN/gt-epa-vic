@@ -16,12 +16,18 @@
  */
 package org.geotools.data.epavic;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.geotools.data.Query;
+import org.geotools.data.epavic.schema.MeasurementFields;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.filter.text.ecql.ECQL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.opengis.feature.simple.SimpleFeature;
 
 public class EpaVicDataStoreIT {
 
@@ -33,8 +39,9 @@ public class EpaVicDataStoreIT {
 
   @Before
   public void setUp() throws Exception {
-    q = new Query("measurement", ECQL
-        .toFilter("MonitorId='PM10' AND TimeBasisId='24HR_AV' " + "AND FromDate='2009020706' AND ToDate='2009020723'"));
+    q = new Query("measurement",
+        ECQL.toFilter("MonitorId='PM10' AND TimeBasisId='24HR_AV' "
+            + "AND FromDate='2009-02-07T00:00:00' AND ToDate='2009-02-07T00:00:00'"));
   }
 
   @After
@@ -44,9 +51,21 @@ public class EpaVicDataStoreIT {
   @Test
   public void testGetCount() throws Exception {
 
-    EpaVicDatastore ds = EpaVicDataStoreFactoryTest.createDefaultEPAServerTestDataStore();
+    EpaVicDatastore ds = EpaVicDataStoreFactoryTest
+        .createDefaultEPAServerTestDataStore();
     ContentFeatureSource featureSource = ds.getFeatureSource("measurement");
     int count = featureSource.getCount(q);
-    System.out.println(count);
+
+    assertTrue(count > 0);
+
+    SimpleFeatureIterator it = featureSource.getFeatures(q).features();
+
+    assertTrue(it.hasNext());
+    SimpleFeature feat = it.next();
+
+    Integer attribute = (Integer) feat
+        .getAttribute(MeasurementFields.SITE_ID.getFieldName());
+
+    assertEquals(10001, attribute.intValue());
   }
 }

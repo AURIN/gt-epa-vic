@@ -105,8 +105,8 @@ public class EpaVicFeatureSourceTest {
         env.getUpperCorner().getDirectPosition().getOrdinate(1), 0.01);
     assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
     assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
-    assertEquals("20151201", params.get(EpaVicFeatureSource.FROMDATE));
-    assertEquals("20161229", params.get(EpaVicFeatureSource.TODATE));
+    assertEquals("2015120100", params.get(EpaVicFeatureSource.FROMDATE));
+    assertEquals("2016122912", params.get(EpaVicFeatureSource.TODATE));
   }
 
   @Test
@@ -119,8 +119,8 @@ public class EpaVicFeatureSourceTest {
     assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS, params.size());
     assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
     assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
-    assertEquals("20151201", params.get(EpaVicFeatureSource.FROMDATE));
-    assertEquals("20161229", params.get(EpaVicFeatureSource.TODATE));
+    assertEquals("2015120100", params.get(EpaVicFeatureSource.FROMDATE));
+    assertEquals("2016122912", params.get(EpaVicFeatureSource.TODATE));
   }
 
   @Test
@@ -133,7 +133,7 @@ public class EpaVicFeatureSourceTest {
     assertEquals(EpaVicFeatureSource.FILTERREQUIREDPARAMS + 1, params.size());
     assertEquals("PM10", params.get(EpaVicFeatureSource.MONITORID));
     assertEquals("24HR_RAV", params.get(EpaVicFeatureSource.TIMEBASISID));
-    assertEquals("20151201", params.get(EpaVicFeatureSource.FROMDATE));
-    assertEquals("20161229", params.get(EpaVicFeatureSource.TODATE));
+    assertEquals("2015120100", params.get(EpaVicFeatureSource.FROMDATE));
+    assertEquals("2016122912", params.get(EpaVicFeatureSource.TODATE));
   }
 }

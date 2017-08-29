@@ -96,7 +96,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
 
   public static String AURINTIMEFORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
-  public static String EPATIMEFORMAT = "yyyyMMdd";
+  public static String EPATIMEFORMAT = "yyyyMMddHH";
 
   protected EpaVicDatastore dataStore;
 
@@ -371,7 +371,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
           new EpaVicFeatureSource.VisitFilter(),
           new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER));
       filter.accept(bboxExtractor, null);
-      BoundingBox bbox = (BoundingBox) bboxExtractor.getBBox();
+      BoundingBox bbox = bboxExtractor.getBBox();
       if (bbox != null) {
         requestParams.put(BBOXPARAM, bbox);
       }
@@ -393,12 +393,12 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
         }
       });
     } catch (IllegalArgumentException e) {
-      throw new CQLException(this.composeErrorMessage(filter,
+      throw new CQLException(composeErrorMessage(filter,
           "Some of the parameter names provieded are not valid"));
     }
 
     if (requestParams.size() < FILTERREQUIREDPARAMS) {
-      throw new CQLException(this.composeErrorMessage(filter,
+      throw new CQLException(composeErrorMessage(filter,
           "The number of parameters provided is incorrect"));
     }
 
@@ -409,7 +409,7 @@ public class EpaVicFeatureSource extends ContentFeatureSource {
       requestParams.replace(TODATE,
           convertDateFormatBetweenAurinAndEPA((String) requestParams.get(TODATE)));
     } catch (ParseException e) {
-      throw new CQLException(this.composeErrorMessage(filter, e.getMessage()));
+      throw new CQLException(composeErrorMessage(filter, e.getMessage()));
     }
 
     return requestParams;
